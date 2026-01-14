@@ -8,19 +8,28 @@ use App\Http\Controllers\BookingController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\HistoryController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\LandingController;
 use App\Http\Controllers\LoginController;
+use App\Http\Controllers\test;
 
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-*/
-
-//--- Public Routes
 // Landing Page
-Route::get('/', function () { 
-    return view('Landing'); 
-})->name('home');
+Route::get('/', [LandingController::class, 'index'])->name('landing.index');
+Route::post('/', [LandingController::class, 'store'])->name('landing.store');
+
+// Dashboard
+Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
+
+// Customers
+Route::get('/customers', [CustomerController::class, 'index'])->name('customers.index');
+Route::post('/customers', [CustomerController::class, 'store'])->name('customers.store');
+Route::put('/customers/{id}', [CustomerController::class, 'update'])->name('customers.update');
+Route::delete('/customers/{id}', [CustomerController::class, 'delete'])->name('customers.delete');
+
+// services
+Route::get('/services', [ServiceController::class, 'index'])->name('services.index');
+Route::put('/services/{id}', [ServiceController::class, 'update'])->name('services.update');
+Route::delete('/services/{id}', [ServiceController::class, 'delete'])->name('services.delete');
+
 
 /**
  * PUBLIC BOOKING LOGIC
@@ -44,27 +53,11 @@ Route::middleware(['auth'])->group(function () {
     // Authentication: Logout
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
-    // Dashboard
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     
-    // Customer Management
-    Route::prefix('customers')->group(function () {
-        Route::get('/', [CustomerController::class, 'index'])->name('customers.index');
-        Route::post('/', [CustomerController::class, 'store'])->name('customers.store');
-        Route::get('/{id}', [CustomerController::class, 'show'])->name('customers.show');
-        Route::get('/{id}/edit', [CustomerController::class, 'edit'])->name('customers.edit');
-        Route::put('/{id}', [CustomerController::class, 'update'])->name('customers.update');
-        Route::delete('/{id}', [CustomerController::class, 'destroy'])->name('customers.destroy');
-    });
     
-    // Service Requests Management (Admin View)
-    Route::prefix('services')->group(function () {
-        Route::get('/', [ServiceController::class, 'index'])->name('services');
-        // Note: Public store is handled above; admin can use it or a separate one here if desired.
-        Route::post('/{id}/confirm', [ServiceController::class, 'confirm'])->name('services.confirm');
-        Route::post('/{id}/cancel', [ServiceController::class, 'cancel'])->name('services.cancel');
-        Route::delete('/{id}', [ServiceController::class, 'destroy'])->name('services.destroy');
-    });
+    
+    
+   
     
     // Bookings (Active work / In Schedule)
     Route::prefix('bookings')->group(function () {
@@ -73,7 +66,8 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/billing', [BookingController::class, 'updateBilling'])->name('bookings.billing');
         Route::delete('{id}', [BookingController::class, 'destroy'])->name('bookings.destroy');
     });
-    
+
+  
     // Employees & Shop Management
     Route::prefix('employees')->group(function () {
         Route::get('/', [EmployeeController::class, 'index'])->name('employees');

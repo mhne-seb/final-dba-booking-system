@@ -9,25 +9,10 @@ class Customer extends Model
 {
     protected $table = 'customer';
     protected $primaryKey = 'customer_id';
-    public $timestamps = false;
-    public $incrementing = true;
-    
-    
-    protected $fillable = [
-        'name', 
-        'phone_number', 
-        'email', 
-        'created_since'
-    ];
-    
-    // Relationships
-    public function vehicles(): HasMany
+
+    // Define the relationship: One Customer has Many Vehicles
+    public function vehicles()
     {
         return $this->hasMany(Vehicle::class, 'customer_id');
-    }
-    
-    public function serviceRequests(): HasMany
-    {
-        return $this->hasMany(ServiceRequest::class, 'customer_id');
     }
 }

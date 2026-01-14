@@ -2,7 +2,7 @@
 
 @section('content')
 
-@php
+<!-- @php
     // Use real data from controller
     $employees = $employees ?? [];
     $shops = $shops ?? [];
@@ -12,7 +12,7 @@
         'employees' => count($employees),
         'shops' => count($shops),
     ];
-@endphp
+@endphp -->
 
 <style>
     body {

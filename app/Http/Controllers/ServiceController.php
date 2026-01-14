@@ -5,83 +5,65 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\Customer;
+use App\Models\Employee;
 use App\Models\Vehicle;
 use App\Models\ServiceDetails;
 use App\Models\ServiceRequest;
 
 class ServiceController extends Controller
 {
-    // Show the booking form
-    public function create()
-    {
-        return view('pages.booking-form'); 
+    public function index(Request $request){
+        $filter = $request->query('filter', 'all');
+
+    $allRequests = collect(DB::select("CALL full_customer_info()"));
+
+    if ($filter !== 'all') {
+        // Filter the collection based on the status column
+        $customers = $allRequests->where('status', $filter);
+    } else {
+        $customers = $allRequests;
     }
 
-    // Process the booking
-    public function store(Request $request)
+    $employees = DB::table('employee')->select('employee_id', 'first_name')->get();
+
+    $service_count = DB::select("CALL service_counts()")[0];
+    $counts = [
+        'all'       => $service_count->total_service_requests,
+        'pending'   => $service_count->total_pending,
+        'confirmed' => $service_count->total_confirmed,
+        'cancelled' => $service_count->total_cancelled,
+    ];
+        return view('pages.services', compact('customers', 'employees', 'counts', 'filter'));
+  
+    }
+
+    // Process the service_request 
+    public function update(Request $request, $id)
     {
-        // 1. Validate Input
-        $request->validate([
-            'name' => 'required|string|max:100',
-            'email' => 'required|email',
-            'phone_number' => 'required|string|size:10',
-            'vehicle_type' => 'required',
-            'brand' => 'required',
-            'model' => 'required',
-            'plate_number' => 'required|string|unique:vehicle,plate_number',
-            'preferred_date' => 'required|date',
-            'preferred_time' => 'required',
-            'service_type' => 'required',
+        
+        $request_id = $id;
+        $status = $request->input('status');
+        $employee = $request->input('employee_id');
+
+        DB::statement("CALL service_request_status(?, ?, ?)", [
+            $request_id,
+            $status,
+            $employee
         ]);
 
-        // 2. Database Transaction to ensure all or nothing is saved
-        DB::beginTransaction();
+        return redirect()->route('services.index');
+    }
 
-        try {
-            // Find or Create Customer
-            $customer = Customer::firstOrCreate(
-                ['email' => $request->email],
-                [
-                    'name' => $request->name,
-                    'phone_number' => $request->phone_number,
-                    'created_since' => now()
-                ]
-            );
-
-            // Create Vehicle linked to Customer
-            $vehicle = Vehicle::create([
-                'customer_id' => $customer->customer_id,
-                'vehicle_type' => $request->vehicle_type,
-                'brand' => $request->brand,
-                'model' => $request->model,
-                'plate_number' => $request->plate_number
-            ]);
-
-            // Create Service Details (The "What" and "When")
-            $details = ServiceDetails::create([
-                'preferred_date' => $request->preferred_date,
-                'preferred_time' => $request->preferred_time,
-                'service_type' => $request->service_type,
-                'description' => $request->description ?? 'No additional notes.'
-            ]);
-
-            // Create the Service Request (The "Booking" anchor)
-            ServiceRequest::create([
-                'customer_id' => $customer->customer_id,
-                'vehicle_id' => $vehicle->vehicle_id,
-                'service_details_id' => $details->service_details_id,
-                'shop_id' => 1, // Defaulting to main shop
-                'status' => 'pending',
-                'created_at' => now()
-            ]);
-
-            DB::commit();
-
-            return redirect()->route('home')->with('success', 'Booking submitted successfully!');
-
-        } catch (\Exception $e) {
-            DB::rollback();
-            return back()->with('error', 'Error processing booking: ' . $e->getMessage());
-        }
+    // Delete service request
+    public function delete($id){
+        $request_id = $id;
+        $status = 'cancelled';
+        $employee = null;
+        DB::statement("CALL service_request_status(?, ?, ?)", [
+            $request_id,
+            $status,
+            $employee
+        ]);
+        return redirect()->route('services.index');
     }
 }

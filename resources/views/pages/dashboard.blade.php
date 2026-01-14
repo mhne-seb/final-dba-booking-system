@@ -1,233 +1,141 @@
 @extends('layouts.app')
 
 @section('content')
-
-
-<style>
-    body {
-        background-color: #0b1120 !important;
-    }
-
-    .custom-bg-dark {
-        background-color: #0f172a !important;
-    }
-
-    .custom-bg-darker {
-        background-color: #1e293b !important;
-    }
-
-    .custom-border-dark {
-        border-color: #475569 !important;
-    }
-
-    .custom-text-muted {
-        color: #94a3b8 !important;
-    }
-
-    .stat-card:hover {
-        border-color: #008ecc !important;
-    }
-</style>
-
-<div class="container-fluid py-4">
-    <header class="mb-5">
-        <h1 class="h1 fw-bold text-white">Dashboard</h1>
-        <p class="custom-text-muted">Welcome back! Here's an overview of today's activities.</p>
+<div class="p-8">
+    
+    <header class="mb-10">
+        <h1 class="text-3xl font-extrabold text-white tracking-tight">Dashboard</h1>
+        <p class="text-sm text-slate-400 mt-1">Welcome back! Here's an overview of today's activities.</p>
     </header>
 
-    <!-- Stats Cards -->
-    <div class="row g-4 mb-5">
-        <div class="col-xl-3 col-lg-6 col-md-6">
-            <div class="card custom-bg-dark border custom-border-dark shadow-lg stat-card h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <p class="text-uppercase small custom-text-muted fw-bold mb-2">Total Bookings Today</p>
-                            <h3 class="fw-bold text-white mb-0"><?php echo $stats['today_bookings']; ?></h3>
-                            <p class="small text-primary mt-2">+3 from yesterday</p>
-                        </div>
-                        <div class="bg-primary bg-opacity-10 p-3 rounded-circle">
-                            <i data-lucide="calendar" class="text-primary" style="width: 24px; height: 24px;"></i>
-                        </div>
-                    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+        <div class="bg-[#0f172a] border border-slate-800 p-6 rounded-2xl hover:border-blue-500/40 transition-all shadow-lg">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Current Bookings</p>
+                    <h3 class="text-3xl font-black text-white mt-3">{{$kpi_metrics->current_bookings}}</h3>
+                </div>
+                <div class="bg-blue-500/10 p-3 rounded-xl text-blue-500">
+                    <i data-lucide="calendar" class="w-6 h-6"></i>
                 </div>
             </div>
         </div>
 
-        <div class="col-xl-3 col-lg-6 col-md-6">
-            <div class="card custom-bg-dark border custom-border-dark shadow-lg h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <p class="text-uppercase small custom-text-muted fw-bold mb-2">Pending Requests</p>
-                            <h3 class="fw-bold text-white mb-0"><?php echo $stats['pending_requests']; ?></h3>
-                            <p class="small text-warning mt-2">Needs attention</p>
-                        </div>
-                        <div class="bg-warning bg-opacity-10 p-3 rounded-circle">
-                            <i data-lucide="clock" class="text-warning" style="width: 24px; height: 24px;"></i>
-                        </div>
-                    </div>
+        <div class="bg-[#0f172a] border border-slate-800 p-6 rounded-2xl shadow-lg">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Pending Requests</p>
+                    <h3 class="text-3xl font-black text-white mt-3">{{$kpi_metrics->pending_requests}}</h3>
+                    
+                </div>
+                <div class="bg-orange-500/10 p-3 rounded-xl text-orange-500">
+                    <i data-lucide="clock" class="w-6 h-6"></i>
                 </div>
             </div>
         </div>
 
-        <div class="col-xl-3 col-lg-6 col-md-6">
-            <div class="card custom-bg-dark border custom-border-dark shadow-lg h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <p class="text-uppercase small custom-text-muted fw-bold mb-2">Completed Today</p>
-                            <h3 class="fw-bold text-white mb-0"><?php echo $stats['completed_today']; ?></h3>
-                            <p class="small text-success mt-2">+2 from yesterday</p>
-                        </div>
-                        <div class="bg-success bg-opacity-10 p-3 rounded-circle">
-                            <i data-lucide="check-circle" class="text-success" style="width: 24px; height: 24px;"></i>
-                        </div>
-                    </div>
+        <div class="bg-[#0f172a] border border-slate-800 p-6 rounded-2xl shadow-lg">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Completed</p>
+                    <h3 class="text-3xl font-black text-white mt-3">{{$kpi_metrics->completed_bookings}}</h3>
+                    
+                </div>
+                <div class="bg-emerald-500/10 p-3 rounded-xl text-emerald-500">
+                    <i data-lucide="check-circle" class="w-6 h-6"></i>
                 </div>
             </div>
         </div>
 
-        <div class="col-xl-3 col-lg-6 col-md-6">
-            <div class="card custom-bg-dark border custom-border-dark shadow-lg h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <p class="text-uppercase small custom-text-muted fw-bold mb-2">Total Customers</p>
-                            <h3 class="fw-bold text-white mb-0"><?php echo $stats['total_customers']; ?></h3>
-                            <p class="small text-purple mt-2">+15 this month</p>
+        <div class="bg-[#0f172a] border border-slate-800 p-6 rounded-2xl shadow-lg">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Total Customers</p>
+                    <h3 class="text-3xl font-black text-white mt-3">{{$kpi_metrics->total_customers}}</h3>
+                    
+                </div>
+                <div class="bg-purple-500/10 p-3 rounded-xl text-purple-500">
+                    <i data-lucide="users" class="w-6 h-6"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="lg:col-span-2 bg-[#0f172a] border border-slate-800 rounded-3xl overflow-hidden shadow-xl">
+    <div class="p-6 border-b border-slate-800 flex items-center gap-3">
+        <i data-lucide="car" class="w-5 h-5 text-blue-500"></i>
+        <h2 class="text-xs font-black text-white uppercase tracking-widest">Total Bookings</h2>
+    </div>
+
+ 
+    <div class="p-6 space-y-4"> 
+        
+        @foreach($customers as $customer)
+            <div class="bg-slate-800/20 p-4 rounded-2xl flex items-center justify-between border border-slate-700/30">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-full bg-slate-700 flex items-center justify-center font-bold text-white">
+                        {{$customer->initials}}
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold text-white">{{$customer->name}}</p>
+                        <p class="text-xs text-slate-500">{{$customer->brand_model}} • {{$customer->service_type}}</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-6">
+                    <span class="text-xs text-slate-400 font-mono">{{$customer->preferred_date}}</span>
+                    <span class="text-xs text-slate-400 font-mono">{{$customer->preferred_time}}</span>
+                    
+                   
+                    <span class="px-4 py-1.5 rounded-full text-[10px] font-bold 
+                        {{ $customer->status == 'pending' ? 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20' : 'bg-blue-500/10 text-blue-400 border-blue-500/20' }} 
+                        border uppercase">
+                        {{$customer->status}}
+                    </span>
+                </div>
+            </div>
+        @endforeach
+
+            </div> 
+        </div>
+
+        <div class="space-y-6">
+            <div class="bg-[#0f172a] border border-slate-800 rounded-3xl p-6 shadow-xl">
+                <h2 class="text-[10px] font-black text-white uppercase tracking-widest mb-6 flex items-center gap-2">
+                    <i data-lucide="trending-up" class="w-4 h-4 text-blue-500"></i> Weekly Overview
+                </h2>
+                <div class="space-y-5">
+                    <div>
+                        <div class="flex justify-between text-[10px] text-slate-400 mb-2"><span>Mon</span><span>90%</span></div>
+                        <div class="h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                            <div class="h-full bg-blue-500 w-[90%]"></div>
                         </div>
-                        <div class="bg-purple bg-opacity-10 p-3 rounded-circle">
-                            <i data-lucide="users" class="text-purple" style="width: 24px; height: 24px;"></i>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-[10px] text-slate-400 mb-2"><span>Tue</span><span>65%</span></div>
+                        <div class="h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                            <div class="h-full bg-blue-500 w-[65%]"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-[#0f172a] border border-slate-800 rounded-3xl p-6 shadow-xl">
+                <h2 class="text-[10px] font-black text-white uppercase tracking-widest mb-6 flex items-center gap-2">
+                    <i data-lucide="zap" class="w-4 h-4 text-yellow-500"></i> Popular Services
+                </h2>
+                <div class="space-y-6">
+                    <div>
+                        <div class="flex justify-between text-[11px] mb-2"><span class="text-slate-300">Tire Vulcanizing</span><span class="text-white font-bold">42%</span></div>
+                        <div class="h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                            <div class="h-full bg-blue-500 w-[42%]"></div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-
-    <div class="row g-4">
-        <div class="col-xl-8">
-            <div class="card custom-bg-dark border custom-border-dark shadow-lg h-100">
-                <div class="card-header border-bottom custom-border-dark">
-                    <div class="d-flex align-items-center">
-                        <i data-lucide="car" class="text-primary me-2" style="width: 20px; height: 20px;"></i>
-                        <h5 class="card-title mb-0 text-uppercase text-white fw-bold">Today's Bookings</h5>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <?php if (count($todayBookings) > 0): ?>
-                        <?php foreach ($todayBookings as $booking): ?>
-                            <div class="card custom-bg-darker border custom-border-dark mb-3">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div class="d-flex align-items-center">
-                                            <div class="rounded-circle bg-dark d-flex align-items-center justify-content-center me-3"
-                                                style="width: 48px; height: 48px;">
-                                                <span class="text-white fw-bold">
-                                                    <?php echo strtoupper(substr($booking['customer'], 0, 2)); ?>
-                                                </span>
-                                            </div>
-                                            <div>
-                                                <h6 class="fw-bold text-white mb-1"><?php echo $booking['customer']; ?></h6>
-                                                <p class="small custom-text-muted mb-0">
-                                                    <?php echo $booking['vehicle']; ?> • <?php echo $booking['service']; ?>
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <div class="d-flex align-items-center gap-4">
-                                            <span class="font-monospace small custom-text-muted"><?php echo $booking['time']; ?></span>
-
-                                            {{-- Logic: Update status badge colors based on new status strings --}}
-                                            <?php if ($booking['status'] === 'Confirmed' || $booking['status'] === 'In Queue'): ?>
-                                                <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-20 px-3 py-2">
-                                                    <?php echo $booking['status']; ?>
-                                                </span>
-                                            <?php elseif ($booking['status'] === 'Pending'): ?>
-                                                <span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-20 px-3 py-2">
-                                                    <?php echo $booking['status']; ?>
-                                                </span>
-                                            <?php else: ?>
-                                                <span class="badge bg-dark text-light border border-secondary px-3 py-2">
-                                                    <?php echo $booking['status']; ?>
-                                                </span>
-                                            <?php endif; ?>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        <?php endforeach; ?>
-                    <?php else: ?>
-                        <div class="text-center py-5 custom-text-muted">
-                            <i data-lucide="calendar" class="mb-3" style="width: 48px; height: 48px;"></i>
-                            <div>No bookings for today</div>
-                        </div>
-                    <?php endif; ?>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-4">
-            <div class="card custom-bg-dark border custom-border-dark shadow-lg mb-4">
-                <div class="card-body">
-                    <div class="d-flex align-items-center mb-4">
-                        <i data-lucide="trending-up" class="text-primary me-2" style="width: 16px; height: 16px;"></i>
-                        <h6 class="card-title mb-0 text-uppercase text-white fw-bold">Weekly Overview</h6>
-                    </div>
-
-                    {{-- Logic: Use the dynamic $weeklyStats from controller --}}
-                    <?php foreach ($weeklyStats as $day): ?>
-                        <div class="mb-3">
-                            <div class="d-flex justify-content-between small custom-text-muted mb-1">
-                                <span><?php echo $day['day']; ?></span>
-                                <span><?php echo round($day['percent']); ?>%</span>
-                            </div>
-                            <div class="progress bg-dark" style="height: 6px;">
-                                <div class="progress-bar bg-primary" role="progressbar"
-                                    style="width: <?php echo $day['percent']; ?>%;"
-                                    aria-valuenow="<?php echo $day['percent']; ?>"
-                                    aria-valuemin="0" aria-valuemax="100"></div>
-                            </div>
-                        </div>
-                    <?php endforeach; ?>
-                </div>
-            </div>
-
-            <div class="card custom-bg-dark border custom-border-dark shadow-lg">
-                <div class="card-body">
-                    <div class="d-flex align-items-center mb-4">
-                        <i data-lucide="zap" class="text-warning me-2" style="width: 16px; height: 16px;"></i>
-                        <h6 class="card-title mb-0 text-uppercase text-white fw-bold">Popular Services</h6>
-                    </div>
-
-                    {{-- Logic: Use dynamic $popularServices from controller --}}
-                    <?php foreach ($popularServices as $service): ?>
-                        <div class="mb-4">
-                            <div class="d-flex justify-content-between small mb-1">
-                                <span class="text-light"><?php echo $service['name']; ?></span>
-                                <span class="fw-bold text-white"><?php echo $service['percent']; ?>%</span>
-                            </div>
-                            <div class="progress bg-dark" style="height: 6px;">
-                                <div class="progress-bar bg-primary" role="progressbar"
-                                    style="width: <?php echo $service['percent']; ?>%;"
-                                    aria-valuenow="<?php echo $service['percent']; ?>"
-                                    aria-valuemin="0" aria-valuemax="100"></div>
-                            </div>
-                        </div>
-                    <?php endforeach; ?>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script src="https://unpkg.com/lucide@latest"></script>
+</div> <script src="https://unpkg.com/lucide@latest"></script>
 <script>
-    // Initialize Lucide icons
-    document.addEventListener('DOMContentLoaded', function() {
-        if (window.lucide && lucide.createIcons) {
-            lucide.createIcons();
-        }
-    });
+  lucide.createIcons();
 </script>
 @endsection

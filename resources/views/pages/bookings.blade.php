@@ -2,7 +2,7 @@
 
 @section('content')
 
-@php
+<!-- @php
     // Use real data from controller
     $allBookings = $bookings ?? [];
     
@@ -34,7 +34,7 @@
         'stuck' => ['label' => 'Stuck', 'color' => 'bg-danger bg-opacity-10 text-danger border border-danger border-opacity-20', 'icon' => 'alert-triangle'],
         'done' => ['label' => 'Done', 'color' => 'bg-success bg-opacity-10 text-success border border-success border-opacity-20', 'icon' => 'check-circle-2'],
     ];
-@endphp
+@endphp -->
 
 <style>
     body {

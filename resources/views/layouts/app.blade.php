@@ -8,7 +8,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <!-- Bootstrap 5 via Vite -->
-    @vite(['resources/sass/app.css', 'resources/js/app.js'])
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -103,13 +103,13 @@
         <hr class="border-secondary mx-4 my-0">
         
         <nav class="flex-grow-1 px-3 py-4 overflow-auto sidebar-scroll">
-            <a href="{{ route('dashboard') }}" class="nav-link-custom {{ request()->is('dashboard') ? 'active' : '' }}">
+            <a href="{{ route('dashboard.index') }}" class="nav-link-custom {{ request()->is('dashboard') ? 'active' : '' }}">
                 <i data-lucide="layout-grid"></i> Dashboard
             </a>
             <a href="{{ route('customers.index') }}" class="nav-link-custom {{ request()->is('customers*') ? 'active' : '' }}">
                 <i data-lucide="users"></i> Customer Information
             </a>
-            <a href="{{ route('services') }}" class="nav-link-custom {{ request()->is('services*') ? 'active' : '' }}">
+            <a href="{{ route('services.index') }}" class="nav-link-custom {{ request()->is('services*') ? 'active' : '' }}">
                 <i data-lucide="clipboard-list"></i> Service Requests
             </a>
             <a href="{{ route('bookings') }}" class="nav-link-custom {{ request()->is('bookings*') ? 'active' : '' }}">

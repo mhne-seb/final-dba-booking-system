@@ -20,7 +20,7 @@ class AdminUserSeeder extends Seeder
             [
                 'first_name'   => 'System',
                 'last_name'    => 'Administrator',
-                'password' => md5('admin123'), // Securely hashes the password
+                'password' => Hash::make('admin123'), // Securely hashes the password
                 'phone_number' => '0912345678', // Fits your CHAR(10) column [cite: 470]
                 'hire_date'    => Carbon::now(),
                 'role'         => 'admin',

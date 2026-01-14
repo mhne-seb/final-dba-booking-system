@@ -2,34 +2,6 @@
 
 @section('content')
 
-@php
-    // Use real data from controller
-    $completedBookings = $completedBookings ?? [];
-    
-    $startDate = request()->query('startDate', date('Y-m-01'));
-    $endDate = request()->query('endDate', date('Y-m-d'));
-    $serviceFilter = trim(request()->query('service', ''));
-    
-    // Filter by date range and service
-    $filteredData = array_values(array_filter($completedBookings, function($b) use ($startDate, $endDate, $serviceFilter) {
-        $inRange = ($b['date'] >= $startDate && $b['date'] <= $endDate);
-        $serviceMatch = $serviceFilter === '' ? true : (stripos($b['service'], $serviceFilter) !== false);
-        return $inRange && $serviceMatch;
-    }));
-    
-    // Calculate stats
-    $totalCompleted = count($filteredData);
-    $vehiclesServiced = $totalCompleted;
-    
-    // Calculate average service time (simplified for demo)
-    $avgHoursDisplay = '1.2 hrs';
-    
-    $stats = [
-        ['title' => 'Total Completed', 'value' => (string)$totalCompleted, 'period' => 'Selected Range', 'color' => 'bg-success bg-opacity-10 text-success'],
-        ['title' => 'Vehicles Serviced', 'value' => (string)$vehiclesServiced, 'period' => 'Selected Range', 'color' => 'bg-primary bg-opacity-10 text-primary'],
-        ['title' => 'Avg. Service Time', 'value' => $avgHoursDisplay ?: '0 mins', 'period' => 'Selected Range', 'color' => 'bg-purple bg-opacity-10 text-purple'],
-    ];
-@endphp
 
 <style>
     body {

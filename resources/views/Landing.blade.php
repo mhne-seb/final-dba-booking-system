@@ -32,6 +32,71 @@
                 </button>
             </div>
         </nav>
+        <style>
+            .form-container {
+                max-height: 80vh; 
+                overflow-y: auto; 
+                padding: 16px; 
+                background-color: #1e293b; 
+                border: 1px solid black; 
+                border-radius: 8px; 
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); 
+            }
+            .form-container input[type="text"],
+            .form-container input[type="email"],
+            .form-container input[type="date"],
+            .form-container input[type="time"],
+            .form-container input[type="number"],
+            .form-container select,
+            .form-container textarea {
+                background-color: #2d3748; /* Softer dark background */
+                color: #e2e8f0; /* Light text color */
+                border: 1px solid #4a5568; /* Subtle border */
+                border-radius: 8px; /* Rounded corners */
+                padding: 12px; /* Comfortable padding */
+                font-size: 16px; /* Slightly larger font */
+                transition: all 0.3s ease; /* Smooth transition for hover effects */
+            }
+
+            .form-container input[type="text"]:focus,
+            .form-container input[type="email"]:focus,
+            .form-container input[type="date"]:focus,
+            .form-container input[type="time"]:focus,
+            .form-container input[type="number"]:focus,
+            .form-container select:focus,
+            .form-container textarea:focus {
+                border-color: #63b3ed; /* Blue border on focus */
+                box-shadow: 0 0 8px rgba(99, 179, 237, 0.5); /* Subtle glow effect */
+                outline: none; /* Remove default outline */
+            }
+
+            .form-container label {
+                color: #a0aec0; /* Softer label color */
+                font-weight: 500; /* Medium font weight */
+            }
+
+            .form-container textarea {
+                resize: none; /* Prevent resizing */
+            }
+
+            .form-container button[type="submit"] {
+                background-color: #3182ce; /* Blue background */
+                color: #ffffff; /* White text */
+                border: none;
+                border-radius: 8px;
+                padding: 12px 16px;
+                font-size: 16px;
+                font-weight: bold;
+                cursor: pointer;
+                transition: all 0.3s ease;
+            }
+
+            .form-container button[type="submit"]:hover {
+                background-color: #2b6cb0; /* Darker blue on hover */
+                transform: scale(1.05); /* Slight zoom effect */
+            }
+
+        </style>
     </header>
 
     <section class="relative min-h-screen flex items-center justify-center pt-16">
@@ -162,55 +227,118 @@
                 <button onclick="toggleBookingModal()" class="text-slate-400 hover:text-white"><i data-lucide="x"></i></button>
             </div>
             
-            <form action="{{ route('services.store') }}" method="POST" class="p-6 space-y-4">
-                @csrf
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Full Name</label>
-                        <input type="text" name="name" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500 transition">
+            <div class="form-container">
+    <form action="{{ route('landing.store') }}" method="POST" class="p-8 space-y-8">
+        @csrf
+
+        <div>
+            <h3 class="text-lg font-semibold text-blue-500 mb-4 flex items-center gap-2">
+                <span class="w-1 h-6 bg-blue-500 rounded-full"></span> Personal Information
+            </h3>
+            <div class="grid gap-5">
+                <div class="space-y-2">
+                    <label class="text-sm font-medium">Full Name *</label>
+                    <input type="text" name="fullName" required class="w-full bg-slate-800 border-slate-700 rounded-md h-11 px-4 focus:ring-2 focus:ring-blue-500 outline-none text-white" placeholder="Enter your full name">
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div class="space-y-2">
+                        <label class="text-sm font-medium">Contact Number *</label>
+                        <input type="text" name="contactNumber" required class="w-full bg-slate-800 border-slate-700 rounded-md h-11 px-4 text-white" placeholder="09123456789">
                     </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Phone Number</label>
-                        <input type="text" name="phone_number" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500 transition">
+                    <div class="space-y-2">
+                        <label class="text-sm font-medium">Email (Optional)</label>
+                        <input type="email" name="email" class="w-full bg-slate-800 border-slate-700 rounded-md h-11 px-4 text-white" placeholder="your@email.com">
                     </div>
                 </div>
+            </div>
+        </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Vehicle Brand/Model</label>
-                        <input type="text" name="brand" placeholder="e.g. Toyota Vios" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500 transition">
-                        <input type="hidden" name="model" value="Standard"> </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Plate Number</label>
-                        <input type="text" name="plate_number" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500 transition">
-                    </div>
-                </div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-blue-500 mb-4 flex items-center gap-2">
+                                <span class="w-1 h-6 bg-blue-500 rounded-full"></span> Vehicle Information
+                            </h3>
+                            <div class="grid gap-5">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                    <div class="space-y-2">
+                                        <label class="text-sm font-medium">Vehicle Type *</label>
+                                        <select name="vehicleType" required class="w-full bg-slate-800 border-slate-700 rounded-md h-11 px-4 text-white outline-none">
+                                            <option value="">Select type</option>
+                                            @foreach(['Sedan', 'SUV', 'Pickup Truck', 'Van', 'Motorcycle', 'Other'] as $type)
+                                                <option value="{{ $type }}">{{ $type }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="text-sm font-medium">Brand *</label>
+                                        <input type="text" name="vehicleBrand" required class="w-full bg-slate-800 border-slate-700 rounded-md h-11 px-4 text-white" placeholder="e.g., Toyota">
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                    <div class="space-y-2">
+                                        <label class="text-sm font-medium">Model *</label>
+                                        <input type="text" name="vehicleModel" required class="w-full bg-slate-800 border-slate-700 rounded-md h-11 px-4 text-white" placeholder="e.g., Vios">
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="text-sm font-medium">Plate Number *</label>
+                                        <input type="text" name="plateNumber" required class="w-full bg-slate-800 border-slate-700 rounded-md h-11 px-4 text-white" placeholder="ABC 1234">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Service Type</label>
-                        <select name="service_type" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500 transition">
-                            <option value="Tire Vulcanizing">Tire Vulcanizing</option>
-                            <option value="Tire Replacement">Tire Replacement</option>
-                            <option value="Wheel Alignment">Wheel Alignment</option>
-                            <option value="Wheel Balancing">Wheel Balancing</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Preferred Date</label>
-                        <input type="date" name="preferred_date" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500 transition">
-                    </div>
-                </div>
-
-                <div class="pt-4">
-                    <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition transform active:scale-95 shadow-lg shadow-blue-500/20">
-                        Confirm Appointment
-                    </button>
+                        <div>
+                            <h3 class="text-lg font-semibold text-blue-500 mb-4 flex items-center gap-2">
+                                <span class="w-1 h-6 bg-blue-500 rounded-full"></span> Service Details
+                            </h3>
+                            <div class="grid gap-5">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                    <div class="space-y-2">
+                                        <label class="text-sm font-medium">Preferred Date *</label>
+                                        <input type="date" name="preferredDate" required class="w-full bg-slate-800 border-slate-700 rounded-md h-11 px-4 text-white [color-scheme:dark]">
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="text-sm font-medium">Preferred Time *</label>
+                                        <input type="time" name="preferredTime" required class="w-full bg-slate-800 border-slate-700 rounded-md h-11 px-4 text-white [color-scheme:dark]">
+                                    </div>
+                                </div>
+                                <div class="grid gap-5">
+                                    <div class="space-y-2">
+                                        <label class="text-sm font-medium">Service Type *</label>
+                                        <select name="serviceType" required class="w-full bg-slate-800 border-slate-700 rounded-md h-11 px-4 text-white outline-none">
+                                            <option value="">Select service</option>
+                                            @foreach(['Tire Vulcanizing', 'Tire Replacement', 'Wheel Alignment', 'Wheel Balancing', 'Flat Tire Repair', 'Tire Rotation', 'Other'] as $service)
+                                                <option value="{{ $service }}">{{ $service }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+            
+                                </div>
+                            
+                                <div class="space-y-2">
+                                    <label class="text-sm font-medium">Describe Your Concern</label>
+                                    <textarea name="concern" rows="3" class="w-full bg-slate-800 border-slate-700 rounded-md p-4 text-white focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Please describe the issue..."></textarea>
+                                </div>
+                    
+                            </div>
+                        </div>
+                        <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition transform active:scale-95 shadow-lg shadow-blue-500/20">
+                            Confirm Appointment
+                        </button>
                 </div>
             </form>
         </div>
     </div>
-
+        <div id="successModal" class="fixed inset-0 z-[101] hidden items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
+        <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div class="p-6 text-center">
+                <h3 class="text-xl font-bold text-white mb-4">Booking Successful!</h3>
+                <p class="text-slate-400 mb-6">Your appointment has been successfully booked. We look forward to serving you!</p>
+                <button onclick="closeSuccessModal()" class="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition shadow-lg shadow-blue-500/20">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
     <footer class="bg-slate-950 border-t border-slate-900 pt-16 pb-8 relative z-10">
         <div class="container mx-auto px-4 text-center">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12 text-left">
@@ -268,6 +396,9 @@
                 toggleBookingModal();
             }
         }
+
     </script>
 </body>
+
 </html>
+
