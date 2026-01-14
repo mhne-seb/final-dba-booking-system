@@ -27,15 +27,15 @@
 
             <div class="flex items-center gap-4">
                 <a href="/login" class="text-slate-300 hover:text-white text-sm font-medium transition px-2">Log in</a>
-                <a href="/book" class="bg-blue-600 text-white px-5 py-2 rounded-lg font-semibold hover:bg-blue-700 transition shadow-lg shadow-blue-500/20 text-sm">
+                <button onclick="toggleBookingModal()" class="bg-blue-600 text-white px-5 py-2 rounded-lg font-semibold hover:bg-blue-700 transition shadow-lg shadow-blue-500/20 text-sm">
                     Book Now
-                </a>
+                </button>
             </div>
         </nav>
     </header>
 
     <section class="relative min-h-screen flex items-center justify-center pt-16">
-        <div class="absolute inset-0 bg-cover bg-center bg-fixed" style="background-image: url('{{ asset('hero-bg.jpg') }}')">
+        <div class="absolute inset-0 bg-cover bg-center bg-fixed" style="background-image: url('hero-bg.jpg');">
             <div class="absolute inset-0 bg-slate-900/90 mix-blend-multiply"></div>
         </div>
         
@@ -49,9 +49,9 @@
                 Quality service, trusted by thousands of vehicle owners.
             </p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                <a href="/book" class="inline-flex items-center justify-center rounded-md bg-blue-600 px-8 py-3 text-lg font-medium text-white shadow transition-all hover:scale-105 hover:bg-blue-700">
+                <button onclick="toggleBookingModal()" class="inline-flex items-center justify-center rounded-md bg-blue-600 px-8 py-3 text-lg font-medium text-white shadow transition-all hover:scale-105 hover:bg-blue-700">
                     Book a Service
-                </a>
+                </button>
                 <a href="#services" class="inline-flex items-center justify-center rounded-md border border-white/20 bg-white/10 px-8 py-3 text-lg font-medium text-white transition-all hover:scale-105 hover:bg-white/20">
                     Our Services
                 </a>
@@ -91,7 +91,7 @@
                         <div class="text-5xl font-bold text-blue-500 mb-2">5+</div>
                         <p class="text-slate-400">Years of Experience</p>
                     </div>
-                    <div>
+                    <div class="mb-6">
                         <div class="text-5xl font-bold text-blue-500 mb-2">100%</div>
                         <p class="text-slate-400">Satisfaction Rate</p>
                     </div>
@@ -131,7 +131,7 @@
     </section>
 
     <section id="contact" class="py-20 bg-slate-900">
-        <div class="container mx-auto px-4">
+        <div class="container mx-auto px-4 text-center">
             <div class="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto mb-12">
                 <div class="bg-slate-800 p-6 rounded-xl text-center border border-slate-700 hover:border-blue-500/50 transition-all">
                     <i data-lucide="phone" class="w-6 h-6 text-blue-500 mx-auto mb-4"></i>
@@ -149,33 +149,85 @@
                     <p class="text-slate-300">123 Main Street, City</p>
                 </div>
             </div>
-            <div class="text-center">
-                <a href="/book" class="inline-block bg-blue-600 text-white px-10 py-4 rounded-lg font-bold text-lg hover:scale-105 transition-transform shadow-xl shadow-blue-500/20">
-                    Book Your Service Now
-                </a>
-            </div>
+            <button onclick="toggleBookingModal()" class="inline-block bg-blue-600 text-white px-10 py-4 rounded-lg font-bold text-lg hover:scale-105 transition-transform shadow-xl shadow-blue-500/20">
+                Book Your Service Now
+            </button>
         </div>
     </section>
 
+    <div id="bookingModal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
+        <div class="bg-slate-900 border border-slate-800 w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div class="p-6 border-b border-slate-800 flex justify-between items-center">
+                <h3 class="text-xl font-bold text-white">Book Your Service</h3>
+                <button onclick="toggleBookingModal()" class="text-slate-400 hover:text-white"><i data-lucide="x"></i></button>
+            </div>
+            
+            <form action="{{ route('services.store') }}" method="POST" class="p-6 space-y-4">
+                @csrf
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Full Name</label>
+                        <input type="text" name="name" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500 transition">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Phone Number</label>
+                        <input type="text" name="phone_number" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500 transition">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Vehicle Brand/Model</label>
+                        <input type="text" name="brand" placeholder="e.g. Toyota Vios" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500 transition">
+                        <input type="hidden" name="model" value="Standard"> </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Plate Number</label>
+                        <input type="text" name="plate_number" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500 transition">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Service Type</label>
+                        <select name="service_type" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500 transition">
+                            <option value="Tire Vulcanizing">Tire Vulcanizing</option>
+                            <option value="Tire Replacement">Tire Replacement</option>
+                            <option value="Wheel Alignment">Wheel Alignment</option>
+                            <option value="Wheel Balancing">Wheel Balancing</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Preferred Date</label>
+                        <input type="date" name="preferred_date" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500 transition">
+                    </div>
+                </div>
+
+                <div class="pt-4">
+                    <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition transform active:scale-95 shadow-lg shadow-blue-500/20">
+                        Confirm Appointment
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <footer class="bg-slate-950 border-t border-slate-900 pt-16 pb-8 relative z-10">
-        <div class="container mx-auto px-4">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
+        <div class="container mx-auto px-4 text-center">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12 text-left">
                 <div>
                     <h3 class="text-white font-bold text-xl mb-4">AutoCare</h3>
                     <p class="text-slate-400 text-sm leading-relaxed">
                         Your trusted vulcanizing shop. Quality service for your safety on the road.
                     </p>
                 </div>
-
                 <div>
                     <h4 class="text-white font-semibold mb-4">Quick Links</h4>
                     <ul class="space-y-2 text-slate-400 text-sm">
                         <li><a href="/#about" class="hover:text-blue-500 transition">About Us</a></li>
                         <li><a href="/#services" class="hover:text-blue-500 transition">Our Services</a></li>
-                        <li><a href="/book" class="hover:text-blue-500 transition">Book Appointment</a></li>
+                        <li><button onclick="toggleBookingModal()" class="hover:text-blue-500 transition">Book Appointment</button></li>
                     </ul>
                 </div>
-
                 <div>
                     <h4 class="text-white font-semibold mb-4">Operating Hours</h4>
                     <ul class="space-y-2 text-slate-400 text-sm">
@@ -184,8 +236,7 @@
                     </ul>
                 </div>
             </div>
-
-            <div class="pt-8 border-t border-slate-900 text-center">
+            <div class="pt-8 border-t border-slate-900">
                 <p class="text-slate-500 text-xs tracking-widest uppercase">
                     © 2024 AutoCare Vulcanizing Shop. All rights reserved.
                 </p>
@@ -193,9 +244,30 @@
         </div>
     </footer>
 
-
     <script>
         lucide.createIcons();
+
+        // New Logic: Toggle function for modal
+        function toggleBookingModal() {
+            const modal = document.getElementById('bookingModal');
+            if (modal.classList.contains('hidden')) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                document.body.style.overflow = 'hidden'; // Stop scrolling
+            } else {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                document.body.style.overflow = 'auto'; // Enable scrolling
+            }
+        }
+
+        // Close modal when clicking outside of it
+        window.onclick = function(event) {
+            const modal = document.getElementById('bookingModal');
+            if (event.target == modal) {
+                toggleBookingModal();
+            }
+        }
     </script>
 </body>
 </html>

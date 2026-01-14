@@ -34,7 +34,7 @@
         </nav>
     </header>
 
-    <div class="min-h-screen relative py-8 px-4 pt-32 bg-cover bg-center bg-fixed" style="background-image: url('{{ asset('hero-bg.jpg') }}')">
+    <div class="min-h-screen relative py-8 px-4 pt-32 bg-cover bg-center bg-fixed" style="background-image: url('hero-bg.jpg');">
         <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-[2px] z-0"></div>
 
         <div class="container mx-auto max-w-2xl relative z-10">
@@ -142,18 +142,38 @@
                                         <input type="time" name="preferredTime" required class="w-full bg-slate-800 border-slate-700 rounded-md h-11 px-4 text-white [color-scheme:dark]">
                                     </div>
                                 </div>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                    <div class="space-y-2">
+                                        <label class="text-sm font-medium">Service Type *</label>
+                                        <select name="serviceType" required class="w-full bg-slate-800 border-slate-700 rounded-md h-11 px-4 text-white outline-none">
+                                            <option value="">Select service</option>
+                                            @foreach(['Tire Vulcanizing', 'Tire Replacement', 'Wheel Alignment', 'Wheel Balancing', 'Flat Tire Repair', 'Tire Rotation', 'Other'] as $service)
+                                                <option value="{{ $service }}">{{ $service }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="text-sm font-medium">Service Price (PHP)</label>
+                                        <input type="number" name="servicePrice" min="0" step="0.01" class="w-full bg-slate-800 border-slate-700 rounded-md h-11 px-4 text-white" placeholder="0.00">
+                                    </div>
+                                </div>
                                 <div class="space-y-2">
-                                    <label class="text-sm font-medium">Service Type *</label>
-                                    <select name="serviceType" required class="w-full bg-slate-800 border-slate-700 rounded-md h-11 px-4 text-white outline-none">
-                                        <option value="">Select service</option>
-                                        @foreach(['Tire Vulcanizing', 'Tire Replacement', 'Wheel Alignment', 'Wheel Balancing', 'Flat Tire Repair', 'Tire Rotation', 'Other'] as $service)
-                                            <option value="{{ $service }}">{{ $service }}</option>
-                                        @endforeach
+                                    <label class="text-sm font-medium">Status</label>
+                                    <select name="status" class="w-full bg-slate-800 border-slate-700 rounded-md h-11 px-4 text-white outline-none">
+                                        <option value="pending">Pending</option>
+                                        <option value="confirmed">Confirmed</option>
+                                        <option value="in_progress">In Progress</option>
+                                        <option value="completed">Completed</option>
+                                        <option value="cancelled">Cancelled</option>
                                     </select>
                                 </div>
                                 <div class="space-y-2">
                                     <label class="text-sm font-medium">Describe Your Concern</label>
-                                    <textarea name="concern" rows="4" class="w-full bg-slate-800 border-slate-700 rounded-md p-4 text-white focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Please describe the issue..."></textarea>
+                                    <textarea name="concern" rows="3" class="w-full bg-slate-800 border-slate-700 rounded-md p-4 text-white focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Please describe the issue..."></textarea>
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="text-sm font-medium">Additional Notes (Optional)</label>
+                                    <textarea name="notes" rows="3" class="w-full bg-slate-800 border-slate-700 rounded-md p-4 text-white focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Any additional notes..."></textarea>
                                 </div>
                             </div>
                         </div>

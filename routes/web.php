@@ -2,65 +2,94 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\ServiceController;
+use App\Http\Controllers\BookingController;
+use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\HistoryController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\LoginController;
 
-// --- Public Routes ---
-Route::get('/', function () { return view('Landing'); })->name('home');
-Route::get('/login', function () { return view('Login'); })->name('login');
+/*
+|--------------------------------------------------------------------------
+| Web Routes
+|--------------------------------------------------------------------------
+*/
 
-Route::post('/login', function (Request $request) {
-    return redirect()->route('dashboard');
+//--- Public Routes
+// Landing Page
+Route::get('/', function () { 
+    return view('Landing'); 
+})->name('home');
+
+/**
+ * PUBLIC BOOKING LOGIC
+ * These routes are accessible to guests. This fixes the 404 error 
+ * when a user clicks "Book Now" on your Landing page.
+ */
+// This handles the form submission from your Landing page
+Route::post('/services/book', [ServiceController::class, 'store'])->name('services.store');
+
+
+//--- Authentication Routes (Guest Access Only)
+Route::middleware(['guest'])->group(function () {
+    Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
+    Route::post('/login', [LoginController::class, 'login']);
 });
 
-// --- Admin Pages ---
-Route::middleware([])->group(function () { 
 
-    Route::get('/dashboard', function () { 
-        return view('pages.dashboard'); 
-    })->name('dashboard');
+//--- Protected Admin & Staff Routes (Auth Required)
+Route::middleware(['auth'])->group(function () {
 
-    // --- Customer Management ---
+    // Authentication: Logout
+    Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+
+    // Dashboard
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    
+    // Customer Management
     Route::prefix('customers')->group(function () {
-        Route::get('/', function () { 
-            $customers = [
-                ['id' => 1, 'full_name' => 'Juan dela Cruz', 'email' => 'juan@email.com', 'contact_number' => '09123456789', 'vehicle_brand' => 'Toyota', 'vehicle_model' => 'Vios', 'plate_number' => 'ABC 1234'],
-                ['id' => 2, 'full_name' => 'Maria Santos', 'email' => 'maria@email.com', 'contact_number' => '09234567890', 'vehicle_brand' => 'Honda', 'vehicle_model' => 'Civic', 'plate_number' => 'XYZ 9876'],
-            ];
-            return view('pages.customers', compact('customers'));
-        })->name('customers.index');
-
-        Route::post('/', function (Request $request) { return back()->with('success', 'Customer added!'); })->name('customers.store');
-        Route::delete('/{id}', function ($id) { return back()->with('success', 'Customer deleted!'); })->name('customers.destroy');
-        Route::put('/{id}', function (Request $request, $id) { return back()->with('success', 'Customer updated!'); })->name('customers.update');
+        Route::get('/', [CustomerController::class, 'index'])->name('customers.index');
+        Route::post('/', [CustomerController::class, 'store'])->name('customers.store');
+        Route::get('/{id}', [CustomerController::class, 'show'])->name('customers.show');
+        Route::get('/{id}/edit', [CustomerController::class, 'edit'])->name('customers.edit');
+        Route::put('/{id}', [CustomerController::class, 'update'])->name('customers.update');
+        Route::delete('/{id}', [CustomerController::class, 'destroy'])->name('customers.destroy');
     });
-
-    // --- Service Requests (FIXED) ---
-    Route::get('/services', function () { 
-        // Mock Data for the Service Request UI
-        $requests = [
-            ['id' => '1', 'customerId' => '1', 'customer' => 'Juan dela Cruz', 'vehicle' => 'Toyota Vios (ABC 1234)', 'service' => 'Tire Vulcanizing', 'date' => '2024-01-15', 'time' => '10:00 AM', 'status' => 'pending', 'concern' => 'Front left tire has a slow leak.', 'assignedTo' => null],
-            ['id' => '2', 'customerId' => '2', 'customer' => 'Maria Santos', 'vehicle' => 'Honda CR-V (XYZ 5678)', 'service' => 'Wheel Alignment', 'date' => '2024-01-15', 'time' => '11:30 AM', 'status' => 'confirmed', 'concern' => 'Car pulling to the right.', 'assignedTo' => 'John Smith'],
-            ['id' => '3', 'customerId' => '3', 'customer' => 'Pedro Reyes', 'vehicle' => 'Ford Ranger (DEF 9012)', 'service' => 'Tire Replacement', 'date' => '2024-01-15', 'time' => '02:00 PM', 'status' => 'in-queue', 'concern' => 'Need new set of off-road tires.', 'assignedTo' => 'Carlos Garcia'],
-        ];
-
-        $employees = [
-            ['id' => 'emp1', 'name' => 'Mike Johnson (Senior Tech)'],
-            ['id' => 'emp2', 'name' => 'John Smith (Mechanic)'],
-            ['id' => 'emp3', 'name' => 'Carlos Garcia (Tire Specialist)'],
-        ];
-
-        return view('pages.services', compact('requests', 'employees')); 
-    })->name('services');
-
-    Route::get('/bookings', function () { return view('pages.bookings'); })->name('bookings');
-    Route::get('/employees', function () { return view('pages.employees'); })->name('employees');
-    Route::get('/history', function () { return view('pages.history'); })->name('history');
+    
+    // Service Requests Management (Admin View)
+    Route::prefix('services')->group(function () {
+        Route::get('/', [ServiceController::class, 'index'])->name('services');
+        // Note: Public store is handled above; admin can use it or a separate one here if desired.
+        Route::post('/{id}/confirm', [ServiceController::class, 'confirm'])->name('services.confirm');
+        Route::post('/{id}/cancel', [ServiceController::class, 'cancel'])->name('services.cancel');
+        Route::delete('/{id}', [ServiceController::class, 'destroy'])->name('services.destroy');
+    });
+    
+    // Bookings (Active work / In Schedule)
+    Route::prefix('bookings')->group(function () {
+        Route::get('/', [BookingController::class, 'index'])->name('bookings');
+        Route::post('/status', [BookingController::class, 'updateStatus'])->name('bookings.status');
+        Route::post('/billing', [BookingController::class, 'updateBilling'])->name('bookings.billing');
+        Route::delete('{id}', [BookingController::class, 'destroy'])->name('bookings.destroy');
+    });
+    
+    // Employees & Shop Management
+    Route::prefix('employees')->group(function () {
+        Route::get('/', [EmployeeController::class, 'index'])->name('employees');
+        Route::post('/', [EmployeeController::class, 'store'])->name('employees.store');
+        Route::post('/{id}/update', [EmployeeController::class, 'update'])->name('employees.update');
+        Route::delete('/{id}', [EmployeeController::class, 'destroy'])->name('employees.destroy');
+        
+        // Shop configuration
+        Route::prefix('shops')->group(function () {
+            Route::post('/', [EmployeeController::class, 'storeShop'])->name('shops.store');
+            Route::post('/{id}/update', [EmployeeController::class, 'updateShop'])->name('shops.update');
+            Route::delete('/{id}', [EmployeeController::class, 'destroyShop'])->name('shops.destroy');
+        });
+    });
+    
+    // History, Reports, and Logs
+    Route::get('/history', [HistoryController::class, 'index'])->name('history');
+    Route::post('/history/export', [HistoryController::class, 'export'])->name('history.export');
 });
-
-// --- Logout ---
-Route::post('/logout', function (Request $request) {
-    Auth::logout();
-    $request->session()->invalidate();
-    $request->session()->regenerateToken();
-    return redirect()->route('login');
-})->name('logout');

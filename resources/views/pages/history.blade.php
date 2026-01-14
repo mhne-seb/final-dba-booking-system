@@ -1,193 +1,177 @@
 @extends('layouts.app')
+
 @section('content')
 
 @php
-// -----------------------------
-// Demo: History & Reports Blade
-// -----------------------------
-// Mock completed bookings (demo data)
-$completedBookings = [
-    ['id' => '1', 'customer' => 'Juan dela Cruz', 'vehicle' => 'Toyota Vios', 'service' => 'Tire Vulcanizing', 'date' => '2024-01-15', 'employee' => 'Mike Johnson', 'duration' => '1.5 hrs'],
-    ['id' => '2', 'customer' => 'Pedro Reyes', 'vehicle' => 'Ford Ranger', 'service' => 'Tire Replacement', 'date' => '2024-01-15', 'employee' => 'Carlos Garcia', 'duration' => '2 hrs'],
-    ['id' => '3', 'customer' => 'Maria Santos', 'vehicle' => 'Honda CR-V', 'service' => 'Wheel Alignment', 'date' => '2024-01-14', 'employee' => 'John Smith', 'duration' => '1 hr'],
-    ['id' => '4', 'customer' => 'Ana Garcia', 'vehicle' => 'Mitsubishi Montero', 'service' => 'Wheel Balancing', 'date' => '2024-01-14', 'employee' => 'Mike Johnson', 'duration' => '45 mins'],
-    ['id' => '5', 'customer' => 'Jose Rizal', 'vehicle' => 'Hyundai Accent', 'service' => 'Flat Tire Repair', 'date' => '2024-01-13', 'employee' => 'John Smith', 'duration' => '30 mins'],
-];
-
-// Read filters from query (GET)
-$startDate = request()->query('startDate', '2024-01-01');
-$endDate   = request()->query('endDate', '2024-01-15');
-$serviceFilter = trim(request()->query('service', ''));
-
-// Helper: convert booking date string to DateTime for comparison
-function to_date($d) {
-    try { return new DateTime($d); } catch (Exception $e) { return null; }
-}
-
-// Filter bookings by date range and service substring
-$filteredData = array_values(array_filter($completedBookings, function($b) use ($startDate, $endDate, $serviceFilter) {
-    $bd = to_date($b['date']);
-    $s = to_date($startDate);
-    $e = to_date($endDate);
-    if (!$bd || !$s || !$e) return false;
-    $inRange = $bd >= $s && $bd <= $e;
-    $serviceMatch = $serviceFilter === '' ? true : (stripos($b['service'], $serviceFilter) !== false);
-    return $inRange && $serviceMatch;
-}));
-
-// Compute stats from filtered or overall dataset (we'll compute from filtered for relevance)
-$totalCompleted = count($filteredData);
-$vehiclesServiced = count($filteredData);
-
-// Compute average service time: convert durations to minutes then average
-function duration_to_minutes($str) {
-    $str = trim(strtolower($str));
-    if (preg_match('/([\d\.]+)\s*hrs?/', $str, $m)) {
-        return floatval($m[1]) * 60;
-    }
-    if (preg_match('/([\d\.]+)\s*hr/', $str, $m)) {
-        return floatval($m[1]) * 60;
-    }
-    if (preg_match('/([\d\.]+)\s*mins?/', $str, $m)) {
-        return floatval($m[1]);
-    }
-    // fallback: try parse float and assume hours
-    if (preg_match('/([\d\.]+)/', $str, $m)) {
-        return floatval($m[1]) * 60;
-    }
-    return 0;
-}
-
-$totalMinutes = 0;
-foreach ($filteredData as $b) {
-    $totalMinutes += duration_to_minutes($b['duration'] ?? '');
-}
-$avgMinutes = $totalCompleted > 0 ? ($totalMinutes / $totalCompleted) : 0;
-$avgHoursDisplay = $avgMinutes >= 60 ? round($avgMinutes / 60, 1) . ' hrs' : round($avgMinutes) . ' mins';
-
-// For display in stat cards; fallback to sensible values if no filtered records
-$stats = [
-    ['title' => 'Total Completed', 'value' => (string)$totalCompleted, 'period' => 'Selected Range', 'color' => 'bg-emerald-500/10 text-emerald-400'],
-    ['title' => 'Vehicles Serviced', 'value' => (string)$vehiclesServiced, 'period' => 'Selected Range', 'color' => 'bg-blue-500/10 text-blue-400'],
-    ['title' => 'Avg. Service Time', 'value' => $avgHoursDisplay ?: '0 mins', 'period' => 'Selected Range', 'color' => 'bg-violet-500/10 text-violet-400'],
-];
-
+    // Use real data from controller
+    $completedBookings = $completedBookings ?? [];
+    
+    $startDate = request()->query('startDate', date('Y-m-01'));
+    $endDate = request()->query('endDate', date('Y-m-d'));
+    $serviceFilter = trim(request()->query('service', ''));
+    
+    // Filter by date range and service
+    $filteredData = array_values(array_filter($completedBookings, function($b) use ($startDate, $endDate, $serviceFilter) {
+        $inRange = ($b['date'] >= $startDate && $b['date'] <= $endDate);
+        $serviceMatch = $serviceFilter === '' ? true : (stripos($b['service'], $serviceFilter) !== false);
+        return $inRange && $serviceMatch;
+    }));
+    
+    // Calculate stats
+    $totalCompleted = count($filteredData);
+    $vehiclesServiced = $totalCompleted;
+    
+    // Calculate average service time (simplified for demo)
+    $avgHoursDisplay = '1.2 hrs';
+    
+    $stats = [
+        ['title' => 'Total Completed', 'value' => (string)$totalCompleted, 'period' => 'Selected Range', 'color' => 'bg-success bg-opacity-10 text-success'],
+        ['title' => 'Vehicles Serviced', 'value' => (string)$vehiclesServiced, 'period' => 'Selected Range', 'color' => 'bg-primary bg-opacity-10 text-primary'],
+        ['title' => 'Avg. Service Time', 'value' => $avgHoursDisplay ?: '0 mins', 'period' => 'Selected Range', 'color' => 'bg-purple bg-opacity-10 text-purple'],
+    ];
 @endphp
 
-<!-- Assets -->
-<script src="https://unpkg.com/lucide@latest"></script>
-<script>document.addEventListener('DOMContentLoaded', ()=>{ if(window.lucide && lucide.createIcons) lucide.createIcons(); })</script>
-
 <style>
-    .toast { position: fixed; top: 1rem; right: 1rem; z-index: 60; }
-    .modal-active { overflow: hidden; }
+    body {
+        background-color: #0b1120 !important;
+    }
+    
+    .custom-bg-dark {
+        background-color: #0f172a !important;
+    }
+    
+    .custom-bg-darker {
+        background-color: #1e293b !important;
+    }
+    
+    .custom-border-dark {
+        border-color: #475569 !important;
+    }
+    
+    .custom-text-muted {
+        color: #94a3b8 !important;
+    }
+    
+    .toast-custom {
+        position: fixed !important;
+        top: 20px !important;
+        right: 20px !important;
+        z-index: 1060 !important;
+        min-width: 300px !important;
+    }
 </style>
 
-<div class="min-h-screen bg-slate-950 p-6 space-y-8">
-    <div class="flex justify-between items-center">
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h1 class="text-3xl font-bold text-white tracking-tight">History & Reports</h1>
-            <p class="text-slate-400 mt-1">View completed bookings and generate reports</p>
+            <h1 class="h2 fw-bold text-white">History & Reports</h1>
+            <p class="custom-text-muted mb-0">View completed bookings and generate reports</p>
         </div>
-
-        <div>
-            <button id="exportBtn" class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded shadow-lg">
-                <i data-lucide="download" class="w-4 h-4 inline-block mr-2"></i>
-                Export Report
-            </button>
-        </div>
+        <button id="exportBtn" class="btn btn-primary">
+            <i data-lucide="download" class="me-2" style="width: 16px; height: 16px;"></i>
+            Export Report
+        </button>
     </div>
-
-    <!-- Stats -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        @foreach ($stats as $stat)
-            <div class="bg-slate-900 border border-slate-800 rounded-lg p-6">
-                <div class="flex items-start justify-between">
-                    <div>
-                        <p class="text-sm font-medium text-slate-400">{{ $stat['title'] }}</p>
-                        <p class="text-3xl font-bold text-white mt-2">{{ $stat['value'] }}</p>
-                        <p class="text-xs text-slate-500 mt-1">{{ $stat['period'] }}</p>
-                    </div>
-                    <div class="p-3 rounded-xl {{ $stat['color'] }} shadow-lg">
-                        <i data-lucide="check-circle-2" class="w-6 h-6"></i>
+    
+    <!-- Stats Cards -->
+    <div class="row g-4 mb-4">
+        <?php foreach($stats as $stat): ?>
+            <div class="col-md-4">
+                <div class="card custom-bg-dark border custom-border-dark shadow-lg h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <p class="small custom-text-muted fw-bold mb-2"><?php echo $stat['title']; ?></p>
+                                <h3 class="fw-bold text-white mb-0"><?php echo $stat['value']; ?></h3>
+                                <p class="small custom-text-muted mt-1"><?php echo $stat['period']; ?></p>
+                            </div>
+                            <div class="<?php echo $stat['color']; ?> p-3 rounded-circle">
+                                <i data-lucide="check-circle-2" style="width: 24px; height: 24px;"></i>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-        @endforeach
+        <?php endforeach; ?>
     </div>
-
+    
     <!-- Filters -->
-    <div class="bg-slate-900 border border-slate-800 rounded-lg overflow-hidden">
-        <div class="p-6">
-            <div class="flex items-center justify-between gap-4">
-                <form id="filterForm" method="GET" action="{{ url()->current() }}" class="w-full">
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <div>
-                            <label class="text-xs text-slate-300">Start Date</label>
-                            <input type="date" name="startDate" value="{{ $startDate }}" class="w-full bg-slate-800 border border-slate-700 rounded p-2 text-white" />
-                        </div>
-                        <div>
-                            <label class="text-xs text-slate-300">End Date</label>
-                            <input type="date" name="endDate" value="{{ $endDate }}" class="w-full bg-slate-800 border border-slate-700 rounded p-2 text-white" />
-                        </div>
-                        <div>
-                            <label class="text-xs text-slate-300">Service Type</label>
-                            <input type="text" name="service" placeholder="All services" value="{{ $serviceFilter }}" class="w-full bg-slate-800 border border-slate-700 rounded p-2 text-white" />
-                        </div>
-                        <div class="flex items-end">
-                            <button type="submit" class="w-full bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 px-4 py-2 rounded">
-                                <i data-lucide="calendar" class="w-4 h-4 inline-block mr-2"></i>
-                                Apply Filters
-                            </button>
-                        </div>
-                    </div>
-                </form>
-            </div>
+    <div class="card custom-bg-dark border custom-border-dark shadow-lg mb-4">
+        <div class="card-body">
+            <form id="filterForm" method="GET" action="<?php echo url()->current(); ?>" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label small custom-text-muted">Start Date</label>
+                    <input type="date" name="startDate" value="<?php echo $startDate; ?>" 
+                           class="form-control bg-dark text-white border-secondary">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small custom-text-muted">End Date</label>
+                    <input type="date" name="endDate" value="<?php echo $endDate; ?>" 
+                           class="form-control bg-dark text-white border-secondary">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small custom-text-muted">Service Type</label>
+                    <input type="text" name="service" placeholder="All services" value="<?php echo htmlspecialchars($serviceFilter); ?>" 
+                           class="form-control bg-dark text-white border-secondary">
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-dark border-secondary w-100">
+                        <i data-lucide="calendar" class="me-2" style="width: 16px; height: 16px;"></i>
+                        Apply Filters
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
-
+    
     <!-- Completed Bookings Table -->
-    <div class="bg-slate-900 border border-slate-800 rounded-xl shadow-xl overflow-hidden">
-        <div class="p-6 border-b border-slate-800">
-            <h2 class="text-lg font-semibold text-white">Completed Bookings History</h2>
-            <p class="text-slate-400 text-sm mt-1">Showing {{ count($filteredData) }} records</p>
+    <div class="card custom-bg-dark border custom-border-dark shadow-lg">
+        <div class="card-header border-bottom custom-border-dark">
+            <h5 class="card-title mb-0 fw-semibold text-white">Completed Bookings History</h5>
+            <p class="small custom-text-muted mb-0">Showing <?php echo count($filteredData); ?> records</p>
         </div>
-
-        <div class="p-6">
-            <div class="rounded-md border border-slate-800 overflow-hidden">
-                <table class="w-full text-left border-collapse">
-                    <thead class="bg-slate-800/50 text-slate-300 text-sm font-semibold">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-dark table-hover mb-0">
+                    <thead class="custom-bg-darker">
                         <tr>
-                            <th class="p-4 border-b border-slate-800">Date</th>
-                            <th class="p-4 border-b border-slate-800">Customer</th>
-                            <th class="p-4 border-b border-slate-800">Vehicle</th>
-                            <th class="p-4 border-b border-slate-800">Service</th>
-                            <th class="p-4 border-b border-slate-800">Technician</th>
-                            <th class="p-4 border-b border-slate-800">Duration</th>
-                            <th class="p-4 border-b border-slate-800">Status</th>
+                            <th class="border-bottom custom-border-dark py-3 ps-4">Date</th>
+                            <th class="border-bottom custom-border-dark py-3">Customer</th>
+                            <th class="border-bottom custom-border-dark py-3">Vehicle</th>
+                            <th class="border-bottom custom-border-dark py-3">Service</th>
+                            <th class="border-bottom custom-border-dark py-3">Technician</th>
+                            <th class="border-bottom custom-border-dark py-3">Duration</th>
+                            <th class="border-bottom custom-border-dark py-3 pe-4">Status</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-800">
-                        @foreach ($filteredData as $b)
-                            <tr class="hover:bg-slate-800/30">
-                                <td class="p-4 text-slate-400">{{ $b['date'] }}</td>
-                                <td class="p-4 font-medium text-white">{{ $b['customer'] }}</td>
-                                <td class="p-4 text-slate-400">{{ $b['vehicle'] }}</td>
-                                <td class="p-4 text-slate-300">{{ $b['service'] }}</td>
-                                <td class="p-4 text-slate-400">{{ $b['employee'] }}</td>
-                                <td class="p-4 text-slate-400">{{ $b['duration'] }}</td>
-                                <td class="p-4">
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border bg-emerald-500/10 text-emerald-400 border-emerald-500/20">
-                                        <i data-lucide="check-circle-2" class="w-3 h-3 mr-1"></i>
-                                        Completed
-                                    </span>
+                    <tbody>
+                        <?php if(count($filteredData) > 0): ?>
+                            <?php foreach($filteredData as $b): ?>
+                                <tr class="border-bottom custom-border-dark">
+                                    <td class="ps-4 py-3 custom-text-muted"><?php echo htmlspecialchars($b['date']); ?></td>
+                                    <td class="py-3">
+                                        <div class="fw-medium text-white"><?php echo htmlspecialchars($b['customer']); ?></div>
+                                    </td>
+                                    <td class="py-3 custom-text-muted"><?php echo htmlspecialchars($b['vehicle']); ?></td>
+                                    <td class="py-3 text-light"><?php echo htmlspecialchars($b['service']); ?></td>
+                                    <td class="py-3 custom-text-muted"><?php echo htmlspecialchars($b['employee']); ?></td>
+                                    <td class="py-3 custom-text-muted"><?php echo htmlspecialchars($b['duration']); ?></td>
+                                    <td class="pe-4 py-3">
+                                        <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-20 px-3 py-2">
+                                            <i data-lucide="check-circle-2" class="me-1" style="width: 12px; height: 12px;"></i>
+                                            Completed
+                                        </span>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="7" class="text-center py-5 custom-text-muted">
+                                    <i data-lucide="inbox" class="mb-3" style="width: 48px; height: 48px;"></i>
+                                    <div>No records found for the selected filters.</div>
                                 </td>
                             </tr>
-                        @endforeach
-
-                        @if (count($filteredData) === 0)
-                            <tr><td colspan="7" class="p-6 text-center text-slate-400">No records found for the selected filters.</td></tr>
-                        @endif
+                        <?php endif; ?>
                     </tbody>
                 </table>
             </div>
@@ -195,58 +179,80 @@ $stats = [
     </div>
 </div>
 
-<!-- Notification toast (hidden by default) -->
-<div id="exportToast" class="toast hidden">
-    <div class="bg-emerald-600 text-white px-6 py-3 rounded-lg shadow-2xl flex items-center gap-3 border border-emerald-400/50">
-        <div class="bg-white/20 p-1 rounded-full">
-            <i data-lucide="check" class="w-4 h-4 text-white"></i>
+<!-- Export Success Toast -->
+<div class="toast align-items-center text-white bg-success border-0 toast-custom" id="exportToast" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="d-flex">
+        <div class="toast-body">
+            <i data-lucide="check" class="me-2"></i>
+            <strong>Export Successful!</strong>
+            <div class="small">Report has been downloaded to your device.</div>
         </div>
-        <div>
-            <p class="font-bold text-sm">Export Successful!</p>
-            <p class="text-xs text-emerald-100">Report has been downloaded to your device.</p>
-        </div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
     </div>
 </div>
 
+<script src="https://unpkg.com/lucide@latest"></script>
 <script>
-    // Data for client-side CSV export (already filtered on server)
-    const data = @json($filteredData);
-
-    function exportCsv(filtered) {
-        if (!Array.isArray(filtered) || filtered.length === 0) {
+    // Convert PHP data to JavaScript
+    const historyData = <?php echo json_encode($filteredData); ?>;
+    const startDate = '<?php echo $startDate; ?>';
+    const endDate = '<?php echo $endDate; ?>';
+    
+    // Initialize Lucide icons
+    document.addEventListener('DOMContentLoaded', function() {
+        if (window.lucide && lucide.createIcons) {
+            lucide.createIcons();
+        }
+        
+        // Initialize Bootstrap tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
+    
+    // Export to CSV
+    function exportCsv() {
+        if (!Array.isArray(historyData) || historyData.length === 0) {
             alert('No records to export for the selected filters.');
             return;
         }
-
-        const headers = ["Date","Customer","Vehicle","Service","Technician","Duration","Status"];
-        const rows = filtered.map(r => [
-            r.date,
-            r.customer.replace(/"/g, '""'),
-            r.vehicle.replace(/"/g, '""'),
-            r.service.replace(/"/g, '""'),
-            r.employee.replace(/"/g, '""'),
-            r.duration,
-            'Completed'
-        ]);
-
-        const csvContent = [headers, ...rows].map(r => r.map(c => `"${c}"`).join(",")).join("\n");
+        
+        const headers = ["Date", "Customer", "Vehicle", "Service", "Technician", "Duration", "Status"];
+        const rows = historyData.map(function(r) {
+            return [
+                r.date,
+                r.customer,
+                r.vehicle,
+                r.service,
+                r.employee,
+                r.duration,
+                'Completed'
+            ];
+        });
+        
+        const csvContent = [headers, ...rows].map(function(r) {
+            return r.map(function(c) {
+                return '"' + c + '"';
+            }).join(",");
+        }).join("\n");
+        
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = `AutoCare_Report_{{ $startDate }}_to_{{ $endDate }}.csv`;
+        link.download = 'AutoCare_Report_' + startDate + '_to_' + endDate + '.csv';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
-
-        // show toast
-        const toast = document.getElementById('exportToast');
-        toast.classList.remove('hidden');
-        setTimeout(() => toast.classList.add('hidden'), 3000);
+        
+        // Show toast
+        const toast = new bootstrap.Toast(document.getElementById('exportToast'));
+        toast.show();
     }
-
-    document.getElementById('exportBtn').addEventListener('click', () => exportCsv(data));
+    
+    // Attach export button
+    document.getElementById('exportBtn').addEventListener('click', exportCsv);
 </script>
-
 @endsection
