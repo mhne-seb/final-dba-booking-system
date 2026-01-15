@@ -112,13 +112,13 @@
             <a href="{{ route('services.index') }}" class="nav-link-custom {{ request()->is('services*') ? 'active' : '' }}">
                 <i data-lucide="clipboard-list"></i> Service Requests
             </a>
-            <a href="{{ route('bookings') }}" class="nav-link-custom {{ request()->is('bookings*') ? 'active' : '' }}">
+            <a href="{{ route('bookings.index') }}" class="nav-link-custom {{ request()->is('bookings*') ? 'active' : '' }}">
                 <i data-lucide="calendar"></i> Booking & Scheduling
             </a>
-            <a href="{{ route('employees') }}" class="nav-link-custom {{ request()->is('employees*') ? 'active' : '' }}">
+            <a href="{{ route('employees.index') }}" class="nav-link-custom {{ request()->is('employees*') ? 'active' : '' }}">
                 <i data-lucide="briefcase"></i> Employees & Shop
             </a>
-            <a href="{{ route('history') }}" class="nav-link-custom {{ request()->is('history*') ? 'active' : '' }}">
+            <a href="{{ route('history.index') }}" class="nav-link-custom {{ request()->is('history*') ? 'active' : '' }}">
                 <i data-lucide="file-text"></i> History & Reports
             </a>
         </nav>
