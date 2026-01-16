@@ -2,65 +2,72 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\ServiceController;
+use App\Http\Controllers\BookingController;
+use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\HistoryController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\LandingController;
+use App\Http\Controllers\LoginController;
+use App\Http\Controllers\ShopController;
+use App\Http\Controllers\test;
 
-// --- Public Routes ---
-Route::get('/', function () { return view('Landing'); })->name('home');
-Route::get('/login', function () { return view('Login'); })->name('login');
+// Landing Page
+Route::get('/', [LandingController::class, 'index'])->name('landing.index');
+Route::post('/', [LandingController::class, 'store'])->name('landing.store');
 
-Route::post('/login', function (Request $request) {
-    return redirect()->route('dashboard');
+// Dashboard
+Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
+
+// Customers
+Route::get('/customers', [CustomerController::class, 'index'])->name('customers.index');
+Route::post('/customers', [CustomerController::class, 'store'])->name('customers.store');
+Route::put('/customers/{id}', [CustomerController::class, 'update'])->name('customers.update');
+Route::delete('/customers/{id}', [CustomerController::class, 'delete'])->name('customers.delete');
+
+// services
+Route::get('/services', [ServiceController::class, 'index'])->name('services.index');
+Route::put('/services/{id}', [ServiceController::class, 'update'])->name('services.update');
+Route::delete('/services/{id}', [ServiceController::class, 'delete'])->name('services.delete');
+
+// bookings
+Route::get('/bookings',[BookingController::class,'index'])->name('bookings.index');
+Route::post('/bookings/{id}', [BookingController::class, 'update'])->name('bookings.update');
+Route::put('/bookings/{id}/billing', [BookingController::class, 'updateBilling'])->name('bookings.billing');
+Route::delete('/bookings/{id}', [BookingController::class, 'delete'])->name('bookings.delete');
+
+// --- Employees Management ---
+Route::get('/employees', [EmployeeController::class, 'index'])->name('employees.index');
+Route::post('/employees', [EmployeeController::class, 'store'])->name('employees.store');
+Route::put('/employees/{id}', [EmployeeController::class, 'update'])->name('employees.update');
+Route::delete('/employees/{id}', [EmployeeController::class, 'delete'])->name('employees.delete');
+
+// // --- Shop Management ---
+Route::post('/shops', [ShopController::class, 'store'])->name('shops.store');
+Route::put('/shops/{id}', [ShopController::class, 'update'])->name('shops.update');
+Route::delete('/shops/{id}', [ShopController::class, 'delete'])->name('shops.delete');
+
+// History
+// History, Reports, and Logs
+Route::get('/history', [HistoryController::class, 'index'])->name('history.index');
+
+
+
+
+
+//--- Authentication Routes (Guest Access Only)
+Route::middleware(['guest'])->group(function () {
+    Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
+    Route::post('/login', [LoginController::class, 'login']);
 });
 
-// --- Admin Pages ---
-Route::middleware([])->group(function () { 
 
-    Route::get('/dashboard', function () { 
-        return view('pages.dashboard'); 
-    })->name('dashboard');
 
-    // --- Customer Management ---
-    Route::prefix('customers')->group(function () {
-        Route::get('/', function () { 
-            $customers = [
-                ['id' => 1, 'full_name' => 'Juan dela Cruz', 'email' => 'juan@email.com', 'contact_number' => '09123456789', 'vehicle_brand' => 'Toyota', 'vehicle_model' => 'Vios', 'plate_number' => 'ABC 1234'],
-                ['id' => 2, 'full_name' => 'Maria Santos', 'email' => 'maria@email.com', 'contact_number' => '09234567890', 'vehicle_brand' => 'Honda', 'vehicle_model' => 'Civic', 'plate_number' => 'XYZ 9876'],
-            ];
-            return view('pages.customers', compact('customers'));
-        })->name('customers.index');
+//--- Protected Admin & Staff Routes (Auth Required)
+Route::middleware(['auth'])->group(function () {
 
-        Route::post('/', function (Request $request) { return back()->with('success', 'Customer added!'); })->name('customers.store');
-        Route::delete('/{id}', function ($id) { return back()->with('success', 'Customer deleted!'); })->name('customers.destroy');
-        Route::put('/{id}', function (Request $request, $id) { return back()->with('success', 'Customer updated!'); })->name('customers.update');
-    });
+    // Authentication: Logout
+    Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
-    // --- Service Requests (FIXED) ---
-    Route::get('/services', function () { 
-        // Mock Data for the Service Request UI
-        $requests = [
-            ['id' => '1', 'customerId' => '1', 'customer' => 'Juan dela Cruz', 'vehicle' => 'Toyota Vios (ABC 1234)', 'service' => 'Tire Vulcanizing', 'date' => '2024-01-15', 'time' => '10:00 AM', 'status' => 'pending', 'concern' => 'Front left tire has a slow leak.', 'assignedTo' => null],
-            ['id' => '2', 'customerId' => '2', 'customer' => 'Maria Santos', 'vehicle' => 'Honda CR-V (XYZ 5678)', 'service' => 'Wheel Alignment', 'date' => '2024-01-15', 'time' => '11:30 AM', 'status' => 'confirmed', 'concern' => 'Car pulling to the right.', 'assignedTo' => 'John Smith'],
-            ['id' => '3', 'customerId' => '3', 'customer' => 'Pedro Reyes', 'vehicle' => 'Ford Ranger (DEF 9012)', 'service' => 'Tire Replacement', 'date' => '2024-01-15', 'time' => '02:00 PM', 'status' => 'in-queue', 'concern' => 'Need new set of off-road tires.', 'assignedTo' => 'Carlos Garcia'],
-        ];
-
-        $employees = [
-            ['id' => 'emp1', 'name' => 'Mike Johnson (Senior Tech)'],
-            ['id' => 'emp2', 'name' => 'John Smith (Mechanic)'],
-            ['id' => 'emp3', 'name' => 'Carlos Garcia (Tire Specialist)'],
-        ];
-
-        return view('pages.services', compact('requests', 'employees')); 
-    })->name('services');
-
-    Route::get('/bookings', function () { return view('pages.bookings'); })->name('bookings');
-    Route::get('/employees', function () { return view('pages.employees'); })->name('employees');
-    Route::get('/history', function () { return view('pages.history'); })->name('history');
 });
-
-// --- Logout ---
-Route::post('/logout', function (Request $request) {
-    Auth::logout();
-    $request->session()->invalidate();
-    $request->session()->regenerateToken();
-    return redirect()->route('login');
-})->name('logout');

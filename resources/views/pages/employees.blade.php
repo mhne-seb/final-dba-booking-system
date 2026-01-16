@@ -1,617 +1,595 @@
 @extends('layouts.app')
+
 @section('content')
 
-@php
-// -------------------------------------------------------------------------
-// Employees & Shops - Demo Blade (uses session storage for demo purposes)
-// -------------------------------------------------------------------------
-// Seed demo data (only once per session)
-if (!session()->has('employees')) {
-    session([
-        'employees' => [
-            ['id' => 'emp1', 'full_name' => 'Mike Johnson', 'position' => 'Senior Technician', 'contact' => '09111222333', 'shop' => 'Main Branch', 'status' => 'active'],
-            ['id' => 'emp2', 'full_name' => 'John Smith', 'position' => 'Technician', 'contact' => '09222333444', 'shop' => 'Main Branch', 'status' => 'active'],
-            ['id' => 'emp3', 'full_name' => 'Carlos Garcia', 'position' => 'Technician', 'contact' => '09333444555', 'shop' => 'Branch 2', 'status' => 'active'],
-            ['id' => 'emp4', 'full_name' => 'Ana Martinez', 'position' => 'Junior Technician', 'contact' => '09444555666', 'shop' => 'Main Branch', 'status' => 'inactive'],
-        ]
-    ]);
-}
-
-if (!session()->has('shops')) {
-    session([
-        'shops' => [
-            ['id' => 'shop1', 'name' => 'Main Branch', 'address' => '123 Main Street, City Center', 'phone' => '02-1234567', 'status' => 'active'],
-            ['id' => 'shop2', 'name' => 'Branch 2', 'address' => '456 Side Street, Downtown', 'phone' => '02-7654321', 'status' => 'active'],
-        ]
-    ]);
-}
-
-// -------------------------------------------------------------------------
-// Handle POST actions (demo-only; in a real app move to controller)
-// Supported actions: add_employee, edit_employee, delete_employee,
-//                   add_shop, edit_shop, delete_shop
-// -------------------------------------------------------------------------
-if (request()->isMethod('post')) {
-    $action = request()->input('action', '');
-    $employees = session('employees', []);
-    $shops = session('shops', []);
-
-    // ---------- EMPLOYEES ----------
-    if ($action === 'add_employee') {
-        $nextId = 'emp' . (count($employees) + 1) . '_' . time();
-        $employees[] = [
-            'id' => $nextId,
-            'full_name' => request()->input('full_name', 'Unnamed'),
-            'position' => request()->input('position', ''),
-            'contact' => request()->input('contact', ''),
-            'shop' => request()->input('shop', ''),
-            'status' => request()->input('status', 'active'),
-        ];
-    } elseif ($action === 'edit_employee') {
-        $id = request()->input('employee_id', '');
-        foreach ($employees as &$e) {
-            if ($e['id'] === $id) {
-                $e['full_name'] = request()->input('full_name', $e['full_name']);
-                $e['position'] = request()->input('position', $e['position']);
-                $e['contact'] = request()->input('contact', $e['contact']);
-                $e['shop'] = request()->input('shop', $e['shop']);
-                $e['status'] = request()->input('status', $e['status']);
-            }
-        }
-        unset($e);
-    } elseif ($action === 'delete_employee') {
-        $id = request()->input('employee_id', '');
-        $employees = array_values(array_filter($employees, fn($x) => $x['id'] !== $id));
-    }
-
-    // ---------- SHOPS ----------
-    if ($action === 'add_shop') {
-        $nextId = 'shop' . (count($shops) + 1) . '_' . time();
-        $shops[] = [
-            'id' => $nextId,
-            'name' => request()->input('name', 'New Shop'),
-            'address' => request()->input('address', ''),
-            'phone' => request()->input('phone', ''),
-            'status' => request()->input('status', 'active'),
-        ];
-    } elseif ($action === 'edit_shop') {
-        $id = request()->input('shop_id', '');
-        foreach ($shops as &$s) {
-            if ($s['id'] === $id) {
-                $s['name'] = request()->input('name', $s['name']);
-                $s['address'] = request()->input('address', $s['address']);
-                $s['phone'] = request()->input('phone', $s['phone']);
-                $s['status'] = request()->input('status', $s['status']);
-            }
-        }
-        unset($s);
-    } elseif ($action === 'delete_shop') {
-        $id = request()->input('shop_id', '');
-        // Before deleting shop, set employees assigned to it to no shop
-        foreach ($employees as &$e) {
-            if ($e['shop'] === array_values(array_filter($shops, fn($sh) => $sh['id'] === $id))[0]['name'] ?? null) {
-                $e['shop'] = '';
-            }
-        }
-        unset($e);
-        $shops = array_values(array_filter($shops, fn($x) => $x['id'] !== $id));
-    }
-
-    // persist
-    session(['employees' => $employees, 'shops' => $shops]);
-
-    // redirect back to avoid form resubmission
-    return redirect(request()->url());
-}
-
-// -------------------------------------------------------------------------
-// Prepare data for view
-// -------------------------------------------------------------------------
-$employees = session('employees', []);
-$shops = session('shops', []);
-
-// For shop-select inputs we use shop names
-$shopNames = array_map(fn($s) => $s['name'], $shops);
-
-// counts
-$counts = [
-    'employees' => count($employees),
-    'shops' => count($shops),
-];
-
-@endphp
-
-<!-- Assets -->
-<script src="https://unpkg.com/lucide@latest"></script>
-<script>document.addEventListener('DOMContentLoaded', ()=>{ if(window.lucide && lucide.createIcons) lucide.createIcons(); })</script>
-
+{{-- CONFIGURATION --}}
 <style>
-    .modal-active { overflow: hidden; }
-    .badge-active { background-color: #064e3b; color: #bbf7d0; padding: 4px 8px; border-radius: 9999px; font-size: 12px; display:inline-block; }
-    .badge-inactive { background-color: #0f172a; color: #94a3b8; padding: 4px 8px; border-radius: 9999px; font-size: 12px; display:inline-block; }
+    /* Essential Dark Mode Styles */
+    body {
+        background-color: #0b1120 !important;
+        color: #f8fafc !important;
+    }
+
+    .custom-bg-dark {
+        background-color: #1e293b !important;
+    }
+
+    .custom-bg-darker {
+        background-color: #0f172a !important;
+    }
+
+    .custom-border-dark {
+        border-color: #334155 !important;
+    }
+
+    .custom-text-muted {
+        color: #94a3b8 !important;
+    }
+
+    /* Inputs & Buttons */
+    .form-select,
+    .form-control {
+        background-color: #0f172a !important;
+        color: #ffffff !important;
+        border-color: #475569 !important;
+    }
+
+    .form-select:focus,
+    .form-control:focus {
+        border-color: #3b82f6 !important;
+        box-shadow: 0 0 0 0.25rem rgba(59, 130, 246, 0.25) !important;
+    }
+
+    /* Tabs */
+    .nav-tabs-custom .nav-link {
+        color: #94a3b8 !important;
+        background: transparent !important;
+        border: none !important;
+        padding: 10px 20px;
+        border-radius: 8px;
+    }
+
+    .nav-tabs-custom .nav-link.active {
+        background-color: #1e293b !important;
+        color: white !important;
+    }
+
+    /* Profile & Card Styles */
+    .profile-circle {
+        width: 60px;
+        height: 60px;
+        background-color: #0ea5e9;
+        color: white;
+        font-size: 24px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+    }
+
+    .work-card {
+        background-color: #020617;
+        border: 1px solid #1e293b;
+        border-radius: 12px;
+        padding: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .status-box {
+        border: 1px solid #334155;
+        border-radius: 8px;
+        padding: 8px 16px;
+        text-align: center;
+        background: rgba(255, 255, 255, 0.03);
+    }
+
+    .section-label {
+        font-size: 11px;
+        font-weight: 700;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 12px;
+        display: block;
+    }
+
+    .text-light-head {
+        color: #e2e8f0 !important;
+    }
+
+    /* Input Styling helper */
+    .focus-ring:focus {
+        border-color: #3b82f6 !important;
+        box-shadow: 0 0 0 0.25rem rgba(59, 130, 246, 0.25) !important;
+    }
+
+    .bg-darker {
+        background-color: #0f172a !important;
+    }
 </style>
 
-<div class="min-h-screen p-6 max-w-7xl mx-auto">
-    <div class="flex items-center justify-between">
-        <div>
-            <h1 class="text-3xl font-bold text-white tracking-tight">Employees & Shop Management</h1>
-            <p class="text-slate-400 mt-1">Manage your workforce and shop locations</p>
-        </div>
+<div class="container-fluid py-4">
+    <div class="mb-4">
+        <h1 class="h2 fw-bold text-white">Management</h1>
+        <p class="custom-text-muted">Manage your workforce and shop locations</p>
     </div>
 
-    <div class="mt-6 flex gap-3">
-        <button id="tabEmployees" class="px-4 py-2 bg-slate-800 text-slate-200 rounded shadow-sm">Employees</button>
-        <button id="tabShops" class="px-4 py-2 bg-slate-900 text-slate-400 rounded hover:bg-slate-800">Shops</button>
-    </div>
+    <ul class="nav nav-tabs nav-tabs-custom mb-4" role="tablist">
+        <li class="nav-item">
+            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#employees-panel" type="button">Employees</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#shops-panel" type="button">Shops</button>
+        </li>
+    </ul>
 
-    <!-- EMPLOYEES PANEL -->
-    <div id="panelEmployees" class="mt-6">
-        <div class="flex justify-between items-center">
-            <div>
-                <h2 class="text-lg font-semibold text-white">Employee List</h2>
-                <p class="text-slate-400 text-sm">Manage technicians and staff</p>
-            </div>
-            <div class="flex items-center gap-3">
-                <input id="employeeSearch" type="text" placeholder="Search employees..." class="bg-slate-900 border border-slate-800 rounded px-3 py-2 text-slate-300" />
-                <button onclick="openAddEmployee()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">+ Add Employee</button>
-            </div>
-        </div>
+    <div class="tab-content">
 
-        <div class="bg-slate-900 border border-slate-800 rounded-xl shadow-xl overflow-hidden mt-6">
-            <div class="p-6">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead class="bg-slate-800/50 text-slate-300 text-sm font-semibold">
-                            <tr>
-                                <th class="p-4 border-b border-slate-800">Name</th>
-                                <th class="p-4 border-b border-slate-800">Position</th>
-                                <th class="p-4 border-b border-slate-800">Contact</th>
-                                <th class="p-4 border-b border-slate-800">Assigned Shop</th>
-                                <th class="p-4 border-b border-slate-800">Status</th>
-                                <th class="p-4 border-b border-slate-800 text-right">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="employeesTable" class="divide-y divide-slate-800">
-                            @foreach ($employees as $emp)
-                                <tr class="hover:bg-slate-800/30 transition-colors employee-row" data-search="{{ strtolower($emp['full_name'] . ' ' . $emp['position'] . ' ' . $emp['shop']) }}">
-                                    <td class="p-4">
-                                        <div class="flex items-center gap-3">
-                                            <div class="w-9 h-9 rounded-full bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-400 font-bold">
-                                                {{ strtoupper(substr($emp['full_name'],0,1)) }}
+        <div class="tab-pane fade show active" id="employees-panel">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="position-relative">
+                    <input id="employeeSearch" type="text" placeholder="Search employees..." class="form-control ps-5" style="width: 300px;">
+                    <i data-lucide="search" class="position-absolute top-50 start-0 translate-middle-y ms-3 text-muted" style="width:18px"></i>
+                </div>
+                <button type="button" class="btn btn-primary fw-bold d-flex align-items-center text-nowrap" data-bs-toggle="modal" data-bs-target="#addEmployeeModal">
+                    <i data-lucide="plus" class="w-4 h-4 me-2"></i>
+                    <span>Add Employee</span>
+                </button>
+            </div>
+
+            <div class="card custom-bg-dark border custom-border-dark shadow-lg">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-dark table-hover mb-0">
+                            <thead class="custom-bg-darker">
+                                <tr>
+                                    <th class="py-3 ps-4 text-light-head">Name</th>
+                                    <th class="py-3 text-light-head">Position</th>
+                                    <th class="py-3 text-light-head">Contact</th>
+                                    <th class="py-3 text-light-head">Shop</th>
+                                    <th class="py-3 text-light-head">Status</th>
+                                    <th class="py-3 text-end pe-4 text-light-head">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="employeesTable">
+                                @forelse($employees as $emp)
+                                @php $empId = $emp->id ?? $emp->employee_id; @endphp
+
+                                <tr class="employee-row border-bottom custom-border-dark"
+                                    data-search="{{ strtolower($emp->full_name . ' ' . $emp->role) }}">
+                                    <td class="ps-4 py-3">
+                                        <div class="d-flex align-items-center">
+                                            <div class="rounded-circle bg-primary bg-opacity-20 d-flex align-items-center justify-content-center me-3 text-white fw-bold" style="width: 36px; height: 36px;">
+                                                {{ strtoupper(substr($emp->full_name, 0, 1)) }}
                                             </div>
-                                            <div>
-                                                <div class="font-medium text-white">{{ $emp['full_name'] }}</div>
-                                            </div>
+                                            <div class="fw-medium text-white">{{ $emp->full_name }}</div>
                                         </div>
                                     </td>
-                                    <td class="p-4 text-slate-300">{{ $emp['position'] }}</td>
-                                    <td class="p-4 text-slate-300">{{ $emp['contact'] }}</td>
-                                    <td class="p-4 text-slate-300">{{ $emp['shop'] ?: '—' }}</td>
-                                    <td class="p-4">
-                                        @if ($emp['status'] === 'active')
-                                            <span class="badge-active">Active</span>
+                                    <td class="py-3 custom-text-muted">{{ $emp->role }}</td>
+                                    <td class="py-3 custom-text-muted">{{ $emp->employee_phone_number }}</td>
+                                    <td class="py-3 custom-text-muted">{{ $emp->name}}</td>
+                                    <td class="py-3">
+                                        @if($emp->is_active === 'active')
+                                        <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-25 rounded-pill px-3">Active</span>
                                         @else
-                                            <span class="badge-inactive">Inactive</span>
+                                        <span class="badge bg-secondary bg-opacity-25 text-secondary border border-secondary border-opacity-25 rounded-pill px-3">Inactive</span>
                                         @endif
                                     </td>
-                                    <td class="p-4 text-right">
-                                        <div class="inline-flex items-center gap-2 justify-end">
-                                            <button onclick="openEditEmployee('{{ $emp['id'] }}')" class="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded">
-                                                <i data-lucide="edit" class="w-4 h-4"></i>
+                                    <td class="text-end pe-4 py-3">
+                                        <div class="d-flex justify-content-end gap-2">
+                                            <button class="btn btn-sm btn-primary fw-bold"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#viewEmpModal-{{ $empId }}">
+                                                View
                                             </button>
-                                            <button onclick="openDeleteEmployee('{{ $emp['id'] }}')" class="p-2 text-red-400 hover:text-red-300 hover:bg-slate-800 rounded">
-                                                <i data-lucide="trash" class="w-4 h-4"></i>
+                                            <button class="btn btn-sm btn-danger fw-bold"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#deleteEmpModal-{{ $empId }}">
+                                                Delete
                                             </button>
                                         </div>
                                     </td>
                                 </tr>
-                            @endforeach
 
-                            @if (count($employees) === 0)
-                                <tr><td colspan="6" class="p-6 text-center text-slate-400">No employees found.</td></tr>
-                            @endif
-                        </tbody>
-                    </table>
+                                <div class="modal fade" id="viewEmpModal-{{ $empId }}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-content custom-bg-dark border custom-border-dark shadow-lg">
+                                            <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3" data-bs-dismiss="modal"></button>
+                                            <div class="modal-body p-4 pt-5">
+                                                <div class="d-flex align-items-center mb-5">
+                                                    <div class="profile-circle me-3">{{ strtoupper(substr($emp->full_name, 0, 1)) }}</div>
+                                                    <div>
+                                                        <h4 class="text-white fw-bold mb-0">{{ $emp->full_name }}</h4>
+                                                        <div class="text-primary">{{ $emp->role }}</div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="mb-5">
+                                                    <span class="section-label"><i class="fas fa-id-card me-2"></i>Contact Information</span>
+                                                    <div class="row">
+                                                        <div class="col-6">
+                                                            <small class="text-secondary d-block mb-1">Phone Number</small>
+                                                            <div class="text-white fs-5">{{ $emp->employee_phone_number }}</div>
+                                                        </div>
+                                                        <div class="col-6">
+                                                            <small class="text-secondary d-block mb-1">Employee ID</small>
+                                                            <span class="badge bg-dark border border-secondary font-monospace px-3 py-2 fs-6 text-white">
+                                                                #{{ str_pad($empId, 4, '0', STR_PAD_LEFT) }}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div>
+                                                    <span class="section-label"><i class="fas fa-briefcase me-2"></i>Work Details</span>
+                                                    <div class="work-card">
+                                                        <div>
+                                                            <small class="text-secondary d-block mb-1">Assigned Location</small>
+                                                            <h5 class="text-white fw-bold mb-1">{{ $emp->name ?? 'Unassigned' }}</h5>
+                                                        </div>
+                                                        <div class="status-box">
+                                                            <span class="section-label mb-0">STATUS</span>
+                                                            <div class="text-white fw-bold">{{ ucfirst($emp->is_active) }}</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer border-top custom-border-dark p-3 bg-dark bg-opacity-25">
+                                                <button type="button" class="btn btn-light text-dark px-4 fw-bold" data-bs-dismiss="modal">Close</button>
+                                                <button type="button" class="btn btn-primary px-4 fw-bold"
+                                                    data-bs-toggle="modal" data-bs-target="#editEmpModal-{{ $empId }}">
+                                                    <i class="far fa-edit me-2"></i>Edit Details
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="modal fade" id="editEmpModal-{{ $empId }}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered modal-lg">
+                                        <div class="modal-content custom-bg-dark border custom-border-dark shadow-lg">
+
+                                            <div class="modal-header border-bottom custom-border-dark py-3 px-4">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="bg-primary bg-opacity-10 p-2 rounded-circle me-3">
+                                                        <i data-lucide="user-cog" class="text-primary w-6 h-6"></i>
+                                                    </div>
+                                                    <div>
+                                                        <h5 class="modal-title text-white fw-bold mb-0">Edit Employee Profile</h5>
+                                                        <p class="text-light small mb-0">Update details for {{ $emp->full_name }}</p>
+                                                    </div>
+                                                </div>
+                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                            </div>
+
+                                            <form action="{{ route('employees.update', $empId) }}" method="POST">
+                                                @csrf @method('PUT')
+
+                                                <div class="modal-body p-4">
+                                                    <div class="mb-4">
+                                                        <h6 class="text-uppercase text-white fw-bold small mb-3 border-bottom custom-border-dark pb-2">
+                                                            <i data-lucide="user" class="w-4 h-4 me-1 d-inline"></i> Personal Details
+                                                        </h6>
+                                                        <div class="row g-3">
+                                                            <div class="col-md-6">
+                                                                <label class="form-label text-light small fw-medium">First Name</label>
+                                                                <input type="text" name="first_name" value="{{ $emp->first_name }}"
+                                                                    class="form-control bg-darker text-white border-secondary focus-ring" required>
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <label class="form-label text-light small fw-medium">Last Name</label>
+                                                                <input type="text" name="last_name" value="{{ $emp->last_name }}"
+                                                                    class="form-control bg-darker text-white border-secondary focus-ring" required>
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <label class="form-label text-light small fw-medium">Contact Number</label>
+                                                                <div class="input-group">
+                                                                    <span class="input-group-text bg-dark border-secondary text-muted"><i data-lucide="phone" class="w-4 h-4"></i></span>
+                                                                    <input type="text" name="phone_number" value="{{ $emp->employee_phone_number }}"
+                                                                        class="form-control bg-darker text-white border-secondary focus-ring">
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <label class="form-label text-light small fw-medium">Email</label>
+                                                                <input type="email" name="email" value="{{ $emp->email }}"
+                                                                    class="form-control bg-darker text-white border-secondary focus-ring" required>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="mb-3">
+                                                        <h6 class="text-uppercase text-white fw-bold small mb-3 border-bottom custom-border-dark pb-2">
+                                                            <i data-lucide="briefcase" class="w-4 h-4 me-1 d-inline"></i> Employment Details
+                                                        </h6>
+                                                        <div class="row g-3">
+                                                            <div class="col-md-6">
+                                                                <label class="form-label text-light small fw-medium">Position / Role</label>
+                                                                <input type="text" name="role" value="{{ $emp-> role }}"
+                                                                    class="form-control bg-darker text-white border-secondary focus-ring" required>
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <label class="form-label text-light small fw-medium">Employment Status</label>
+                                                                <select name="is_active" class="form-select bg-darker text-white border-secondary focus-ring">
+                                                                    <option value="active" {{ $emp->is_active == 'active' ? 'selected' : '' }}>🟢 Active</option>
+                                                                    <option value="inactive" {{ $emp->is_active == 'inactive' ? 'selected' : '' }}>🔴 Inactive</option>
+                                                                </select>
+                                                            </div>
+                                                            <div class="col-12">
+                                                                <label class="form-label text-light small fw-medium">Assigned Location</label>
+                                                                <select name="shop" class="form-select bg-darker text-white border-secondary focus-ring">
+                                                                    <option value="">-- No Shop Assigned --</option>
+                                                                    @foreach($shops as $s)
+                                                                    <option value="{{ $s->shop_id }}" {{ ($emp->shop ?? '') == $s->name ? 'selected' : '' }}>
+                                                                        🏢 {{ $s->name }}
+                                                                    </option>
+                                                                    @endforeach
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="modal-footer border-top custom-border-dark bg-dark bg-opacity-50 py-3 px-4">
+                                                    <button type="button" class="btn btn-outline-light border-0 fw-medium" data-bs-dismiss="modal">Cancel</button>
+                                                    <button type="submit" class="btn btn-primary fw-bold px-4">
+                                                        <i data-lucide="save" class="w-4 h-4 me-2"></i> Save Changes
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="modal fade" id="deleteEmpModal-{{ $empId }}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-content custom-bg-dark border custom-border-dark">
+                                            <div class="modal-body p-4 text-center">
+                                                <i class="fas fa-exclamation-triangle text-danger fa-3x mb-3"></i>
+                                                <h5 class="text-white mb-2">Confirm Deletion</h5>
+                                                <p class="custom-text-muted">Are you sure you want to remove <strong class="text-white">{{ $emp->full_name }}</strong>? This cannot be undone.</p>
+                                                <div class="d-flex justify-content-center gap-3 mt-4">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                    <form action="{{ route('employees.delete', $empId) }}" method="POST">
+                                                        @csrf @method('DELETE')
+                                                        <button type="submit" class="btn btn-danger fw-bold">Yes, Delete</button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                @empty
+                                <tr>
+                                    <td colspan="6" class="text-center py-5 custom-text-muted">
+                                        <i data-lucide="users" class="mx-auto mb-2" style="width:32px; height:32px"></i>
+                                        <div>No employees found</div>
+                                    </td>
+                                </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- SHOPS PANEL -->
-    <div id="panelShops" class="mt-6 hidden">
-        <div class="flex justify-between items-center">
-            <div>
-                <h2 class="text-lg font-semibold text-white">Shops</h2>
-                <p class="text-slate-400 text-sm">Manage shop locations</p>
+        <div class="tab-pane fade" id="shops-panel">
+            <div class="d-flex justify-content-end mb-4">
+                <button type="button" class="btn btn-primary fw-bold d-flex align-items-center text-nowrap" data-bs-toggle="modal" data-bs-target="#addShopModal">
+                    <i data-lucide="plus" class="w-4 h-4 me-2"></i> Add Shop
+                </button>
             </div>
-            <div>
-                <button onclick="openAddShop()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">+ Add Shop</button>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-            @foreach ($shops as $shop)
-                @php
-                    // count employees assigned
-                    $assigned = array_values(array_filter($employees, fn($e)=> $e['shop'] === $shop['name']));
-                @endphp
-                <div class="bg-slate-900 border border-slate-800 rounded-xl p-6">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <div class="flex items-center gap-3">
-                                <div class="p-3 rounded-lg bg-slate-800/40">
-                                    <i data-lucide="home" class="w-5 h-5 text-slate-300"></i>
+            <div class="row">
+                @forelse($shops as $shop)
+                @php $shopId = $shop->id ?? $shop->shop_id; @endphp
+                <div class="col-md-6 mb-4">
+                    <div class="card custom-bg-dark border custom-border-dark h-100 shadow-sm hover-shadow transition">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-dark p-3 rounded me-3 border border-secondary border-opacity-25">
+                                        <i data-lucide="store" class="text-primary w-6 h-6"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="fw-bold text-white mb-1">{{ $shop->name }}</h6>
+                                        <span class="badge bg-secondary bg-opacity-25 text-light border border-secondary border-opacity-25 rounded-pill px-2">
+                                            {{ ucfirst($shop->city) }}
+                                        </span>
+                                    </div>
                                 </div>
-                                <div>
-                                    <div class="font-bold text-white">{{ $shop['name'] }}</div>
-                                    <div class="text-sm text-slate-400 mt-1">{{ $shop['status'] === 'active' ? 'Active' : 'Inactive' }}</div>
+                                {{-- Simple delete for shop --}}
+                                <form action="{{ route('shops.delete', $shopId) }}" method="POST" onsubmit="return confirm('Delete shop?');">
+                                    @csrf @method('DELETE')
+                                    <button type="submit" class="btn btn-sm text-danger border-0 p-2 hover-bg-danger-subtle rounded"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
+                                </form>
+                            </div>
+                            <div class="custom-text-muted small mt-3 pt-3 border-top custom-border-dark">
+                                <div class="mb-2 d-flex align-items-center">
+                                    <i data-lucide="map-pin" class="w-4 h-4 me-2 text-primary"></i> {{ $shop->address }}
+                                </div>
+                                <div class="d-flex align-items-center">
+                                    <i data-lucide="phone" class="w-4 h-4 me-2 text-primary"></i> {{ $shop->phone_number }}
                                 </div>
                             </div>
                         </div>
-                        <div class="flex gap-2">
-                            <button onclick="openEditShop('{{ $shop['id'] }}')" class="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded">
-                                <i data-lucide="edit" class="w-4 h-4"></i>
-                            </button>
-                            <button onclick="openDeleteShop('{{ $shop['id'] }}')" class="p-2 text-red-400 hover:text-red-300 hover:bg-slate-800 rounded">
-                                <i data-lucide="trash" class="w-4 h-4"></i>
-                            </button>
+                    </div>
+                </div>
+                @empty
+                <div class="col-12 text-center py-5 custom-text-muted">No shops available</div>
+                @endforelse
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="addEmployeeModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content custom-bg-dark border custom-border-dark shadow-lg">
+
+            <div class="modal-header border-bottom custom-border-dark py-3 px-4">
+                <div class="d-flex align-items-center">
+                    <div class="bg-success bg-opacity-10 p-2 rounded-circle me-3">
+                        <i data-lucide="user-plus" class="text-success w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title text-white fw-bold mb-0">Add New Employee</h5>
+                        <p class="text-light small mb-0">Create a new employee profile</p>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <form action="{{ route('employees.store') }}" method="POST">
+                @csrf
+                <div class="modal-body p-4">
+                    <div class="mb-4">
+                        <h6 class="text-uppercase text-white fw-bold small mb-3 border-bottom custom-border-dark pb-2">
+                            <i data-lucide="user" class="w-4 h-4 me-1 d-inline"></i> Personal Details
+                        </h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label text-light small fw-medium">First Name</label>
+                                <input type="text" name="first_name" 
+                                    class="form-control bg-darker text-white border-secondary focus-ring" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-light small fw-medium">Last Name</label>
+                                <input type="text" name="last_name" 
+                                    class="form-control bg-darker text-white border-secondary focus-ring" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-light small fw-medium">Contact Number</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-dark border-secondary text-muted"><i data-lucide="phone" class="w-4 h-4"></i></span>
+                                    <input type="text" name="phone_number" class="form-control bg-darker text-white border-secondary focus-ring">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-light small fw-medium">Email</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-dark border-secondary text-muted"><i data-lucide="phone" class="w-4 h-4"></i></span>
+                                    <input type="email" name="email" class="form-control bg-darker text-white border-secondary focus-ring">
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="mt-6 space-y-3">
-                        <div class="bg-slate-950 p-3 rounded border border-slate-800 text-slate-300">
-                            <i data-lucide="map-pin" class="w-4 h-4 inline-block mr-2"></i> {{ $shop['address'] }}
+                    <div class="mb-3">
+                        <h6 class="text-uppercase text-white fw-bold small mb-3 border-bottom custom-border-dark pb-2">
+                            <i data-lucide="briefcase" class="w-4 h-4 me-1 d-inline"></i> Employment Details
+                        </h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label text-light small fw-medium">Position / Role</label>
+                                <input type="text" name="role" class="form-control bg-darker text-white border-secondary focus-ring" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-light small fw-medium">Employment Status</label>
+                                <select name="is_active" class="form-select bg-darker text-white border-secondary focus-ring">
+                                    <option value="active" selected>🟢 Active</option>
+                                    <option value="inactive">🔴 Inactive</option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label text-light small fw-medium">Assigned Location</label>
+                                <select name="shop" class="form-select bg-darker text-white border-secondary focus-ring">
+                                    <option value="">-- No Shop Assigned --</option>
+                                    @foreach($shops as $s)
+                                    <option value="{{ $s->shop_id}}">🏢 {{ $s->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
                         </div>
-                        <div class="bg-slate-950 p-3 rounded border border-slate-800 text-slate-300">
-                            <i data-lucide="phone" class="w-4 h-4 inline-block mr-2"></i> {{ $shop['phone'] }}
+                    </div>
+                </div>
+
+                <div class="modal-footer border-top custom-border-dark bg-dark bg-opacity-50 py-3 px-4">
+                    <button type="button" class="btn btn-outline-light border-0 fw-medium" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary fw-bold px-4 d-flex align-items-center">
+    <i data-lucide="check" class="w-4 h-4 me-2"></i>
+    <span>Save Employee</span>
+</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="addShopModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content custom-bg-dark border custom-border-dark shadow-lg">
+
+            <div class="modal-header border-bottom custom-border-dark py-3 px-4">
+                <div class="d-flex align-items-center">
+                    <div class="bg-info bg-opacity-10 p-2 rounded-circle me-3">
+                        <i data-lucide="store" class="text-info w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title text-white fw-bold mb-0">Add New Shop</h5>
+                        <p class="text-light small mb-0">Register a new branch location</p>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <form action="{{ route('shops.store') }}" method="POST">
+                @csrf
+                <div class="modal-body p-4">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label text-light small fw-medium">Shop Name</label>
+                            <input type="text" name="name" class="form-control bg-darker text-white border-secondary focus-ring" required>
                         </div>
-                        <div class="bg-slate-950 p-3 rounded border border-slate-800 text-slate-300">
-                            <i data-lucide="users" class="w-4 h-4 inline-block mr-2"></i> {{ count($assigned) }} employees assigned
+                        <div class="col-12">
+                            <label class="form-label text-light small fw-medium">Email</label>
+                            <input type="email" name="email" class="form-control bg-darker text-white border-secondary focus-ring" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label text-light small fw-medium">Address</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-dark border-secondary text-muted"><i data-lucide="map-pin" class="w-4 h-4"></i></span>
+                                <input type="text" name="address" class="form-control bg-darker text-white border-secondary focus-ring">
+                            </div>
+                        </div>
+                        
+                        <div class="col-6">
+                            <label class="form-label text-light small fw-medium">Contact Number</label>
+                            <input type="text" name="phone_number" class="form-control bg-darker text-white border-secondary focus-ring">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label text-light small fw-medium">City</label>
+                            <input type="text" name="city" class="form-control bg-darker text-white border-secondary focus-ring">
                         </div>
                     </div>
                 </div>
-            @endforeach
-
-            @if (count($shops) === 0)
-                <div class="p-6 text-slate-400">No shops configured.</div>
-            @endif
+                <div class="modal-footer border-top custom-border-dark bg-dark bg-opacity-50 py-3 px-4">
+                    <button type="button" class="btn btn-outline-light border-0 fw-medium" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary fw-bold px-4">Save Shop</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
 
-<!-- ----------------------- Employee Modals ----------------------- -->
-
-<!-- Add Employee -->
-<div id="addEmployeeModal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
-    <div class="bg-slate-900 border border-slate-800 rounded-lg max-w-md w-full p-6">
-        <div class="flex justify-between items-center mb-4">
-            <h3 class="text-lg font-bold text-white">Add New Employee</h3>
-            <button onclick="closeAddEmployee()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
-        </div>
-        <form method="POST" action="{{ url()->current() }}">
-            @csrf
-            <input type="hidden" name="action" value="add_employee" />
-            <div class="space-y-3">
-                <label class="text-xs text-slate-300">Full Name</label>
-                <input name="full_name" type="text" required class="w-full bg-slate-800 border border-slate-700 rounded p-2 text-white" placeholder="e.g. Juan dela Cruz" />
-
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="text-xs text-slate-300">Position</label>
-                        <input name="position" type="text" class="w-full bg-slate-800 border border-slate-700 rounded p-2 text-white" placeholder="e.g. Technician" />
-                    </div>
-                    <div>
-                        <label class="text-xs text-slate-300">Contact No.</label>
-                        <input name="contact" type="text" class="w-full bg-slate-800 border border-slate-700 rounded p-2 text-white" placeholder="09XX..." />
-                    </div>
-                </div>
-
-                <div>
-                    <label class="text-xs text-slate-300">Assigned Shop</label>
-                    <select name="shop" class="w-full bg-slate-800 border border-slate-700 rounded p-2 text-white">
-                        <option value="">Select Shop</option>
-                        @foreach ($shopNames as $sname)
-                            <option value="{{ $sname }}">{{ $sname }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div>
-                    <label class="text-xs text-slate-300">Status</label>
-                    <select name="status" class="w-full bg-slate-800 border border-slate-700 rounded p-2 text-white">
-                        <option value="active">Active</option>
-                        <option value="inactive">Inactive</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="mt-4 flex justify-end gap-3">
-                <button type="button" onclick="closeAddEmployee()" class="px-4 py-2 text-slate-300 border border-slate-700 rounded">Cancel</button>
-                <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded">Save Changes</button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<!-- Edit Employee -->
-<div id="editEmployeeModal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
-    <div class="bg-slate-900 border border-slate-800 rounded-lg max-w-md w-full p-6">
-        <div class="flex justify-between items-center mb-4">
-            <h3 class="text-lg font-bold text-white">Edit Employee</h3>
-            <button onclick="closeEditEmployee()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
-        </div>
-        <form id="editEmployeeForm" method="POST" action="{{ url()->current() }}">
-            @csrf
-            <input type="hidden" name="action" value="edit_employee" />
-            <input type="hidden" name="employee_id" id="edit_employee_id" value="" />
-
-            <div class="space-y-3">
-                <label class="text-xs text-slate-300">Full Name</label>
-                <input id="edit_full_name" name="full_name" type="text" required class="w-full bg-slate-800 border border-slate-700 rounded p-2 text-white" />
-
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="text-xs text-slate-300">Position</label>
-                        <input id="edit_position" name="position" type="text" class="w-full bg-slate-800 border border-slate-700 rounded p-2 text-white" />
-                    </div>
-                    <div>
-                        <label class="text-xs text-slate-300">Contact No.</label>
-                        <input id="edit_contact" name="contact" type="text" class="w-full bg-slate-800 border border-slate-700 rounded p-2 text-white" />
-                    </div>
-                </div>
-
-                <div>
-                    <label class="text-xs text-slate-300">Assigned Shop</label>
-                    <select id="edit_shop" name="shop" class="w-full bg-slate-800 border border-slate-700 rounded p-2 text-white">
-                        <option value="">Select Shop</option>
-                        @foreach ($shopNames as $sname)
-                            <option value="{{ $sname }}">{{ $sname }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div>
-                    <label class="text-xs text-slate-300">Status</label>
-                    <select id="edit_status" name="status" class="w-full bg-slate-800 border border-slate-700 rounded p-2 text-white">
-                        <option value="active">Active</option>
-                        <option value="inactive">Inactive</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="mt-4 flex justify-end gap-3">
-                <button type="button" onclick="closeEditEmployee()" class="px-4 py-2 text-slate-300 border border-slate-700 rounded">Cancel</button>
-                <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded">Save Changes</button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<!-- Delete Employee -->
-<div id="deleteEmployeeModal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
-    <div class="bg-slate-900 border border-slate-800 rounded-lg max-w-sm w-full p-6">
-        <h3 class="text-lg font-bold text-white mb-2">Delete Employee</h3>
-        <p class="text-slate-400 mb-4">Are you sure you want to remove this employee? This action cannot be undone.</p>
-        <form id="deleteEmployeeForm" method="POST" action="{{ url()->current() }}">
-            @csrf
-            <input type="hidden" name="action" value="delete_employee" />
-            <input type="hidden" name="employee_id" id="delete_employee_id" value="" />
-            <div class="flex justify-end gap-3">
-                <button type="button" onclick="closeDeleteEmployee()" class="px-4 py-2 text-slate-300 border border-slate-700 rounded">Cancel</button>
-                <button type="submit" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded">Yes, Delete</button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<!-- ----------------------- Shop Modals ----------------------- -->
-
-<!-- Add Shop -->
-<div id="addShopModal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
-    <div class="bg-slate-900 border border-slate-800 rounded-lg max-w-md w-full p-6">
-        <div class="flex justify-between items-center mb-4">
-            <h3 class="text-lg font-bold text-white">Add Shop</h3>
-            <button onclick="closeAddShop()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
-        </div>
-        <form method="POST" action="{{ url()->current() }}">
-            @csrf
-            <input type="hidden" name="action" value="add_shop" />
-            <div class="space-y-3">
-                <label class="text-xs text-slate-300">Shop Name</label>
-                <input name="name" type="text" required class="w-full bg-slate-800 border border-slate-700 rounded p-2 text-white" />
-
-                <label class="text-xs text-slate-300">Address</label>
-                <input name="address" type="text" class="w-full bg-slate-800 border border-slate-700 rounded p-2 text-white" />
-
-                <label class="text-xs text-slate-300">Contact Number</label>
-                <input name="phone" type="text" class="w-full bg-slate-800 border border-slate-700 rounded p-2 text-white" />
-
-                <label class="text-xs text-slate-300">Status</label>
-                <select name="status" class="w-full bg-slate-800 border border-slate-700 rounded p-2 text-white">
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
-                </select>
-            </div>
-
-            <div class="mt-4 flex justify-end gap-3">
-                <button type="button" onclick="closeAddShop()" class="px-4 py-2 text-slate-300 border border-slate-700 rounded">Cancel</button>
-                <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded">Save Shop</button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<!-- Edit Shop -->
-<div id="editShopModal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
-    <div class="bg-slate-900 border border-slate-800 rounded-lg max-w-md w-full p-6">
-        <div class="flex justify-between items-center mb-4">
-            <h3 class="text-lg font-bold text-white">Edit Shop</h3>
-            <button onclick="closeEditShop()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
-        </div>
-        <form id="editShopForm" method="POST" action="{{ url()->current() }}">
-            @csrf
-            <input type="hidden" name="action" value="edit_shop" />
-            <input type="hidden" name="shop_id" id="edit_shop_id" value="" />
-            <div class="space-y-3">
-                <label class="text-xs text-slate-300">Shop Name</label>
-                <input id="edit_shop_name" name="name" type="text" required class="w-full bg-slate-800 border border-slate-700 rounded p-2 text-white" />
-
-                <label class="text-xs text-slate-300">Address</label>
-                <input id="edit_shop_address" name="address" type="text" class="w-full bg-slate-800 border border-slate-700 rounded p-2 text-white" />
-
-                <label class="text-xs text-slate-300">Contact Number</label>
-                <input id="edit_shop_phone" name="phone" type="text" class="w-full bg-slate-800 border border-slate-700 rounded p-2 text-white" />
-
-                <label class="text-xs text-slate-300">Status</label>
-                <select id="edit_shop_status" name="status" class="w-full bg-slate-800 border border-slate-700 rounded p-2 text-white">
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
-                </select>
-            </div>
-
-            <div class="mt-4 flex justify-end gap-3">
-                <button type="button" onclick="closeEditShop()" class="px-4 py-2 text-slate-300 border border-slate-700 rounded">Cancel</button>
-                <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded">Save Changes</button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<!-- Delete Shop -->
-<div id="deleteShopModal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
-    <div class="bg-slate-900 border border-slate-800 rounded-lg max-w-sm w-full p-6">
-        <h3 class="text-lg font-bold text-white mb-2">Delete Shop</h3>
-        <p class="text-slate-400 mb-4">Deleting a shop will unassign employees assigned to it. Continue?</p>
-        <form id="deleteShopForm" method="POST" action="{{ url()->current() }}">
-            @csrf
-            <input type="hidden" name="action" value="delete_shop" />
-            <input type="hidden" name="shop_id" id="delete_shop_id" value="" />
-            <div class="flex justify-end gap-3">
-                <button type="button" onclick="closeDeleteShop()" class="px-4 py-2 text-slate-300 border border-slate-700 rounded">Cancel</button>
-                <button type="submit" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded">Yes, Delete</button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<!-- ----------------------- Scripts ----------------------- -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
 <script>
-    // Simple tab handling
-    const tabEmployees = document.getElementById('tabEmployees');
-    const tabShops = document.getElementById('tabShops');
-    const panelEmployees = document.getElementById('panelEmployees');
-    const panelShops = document.getElementById('panelShops');
-
-    tabEmployees.addEventListener('click', () => {
-        panelEmployees.classList.remove('hidden');
-        panelShops.classList.add('hidden');
-        tabEmployees.classList.remove('bg-slate-900'); tabEmployees.classList.add('bg-slate-800');
-        tabShops.classList.remove('bg-slate-800'); tabShops.classList.add('bg-slate-900');
-    });
-    tabShops.addEventListener('click', () => {
-        panelShops.classList.remove('hidden');
-        panelEmployees.classList.add('hidden');
-        tabShops.classList.remove('bg-slate-900'); tabShops.classList.add('bg-slate-800');
-        tabEmployees.classList.remove('bg-slate-800'); tabEmployees.classList.add('bg-slate-900');
+    document.addEventListener('DOMContentLoaded', () => {
+        if (window.lucide) lucide.createIcons();
     });
 
-    // -------------------- Employee modals --------------------
-    function openAddEmployee() {
-        document.getElementById('addEmployeeModal').classList.remove('hidden');
-        document.body.classList.add('modal-active');
-    }
-    function closeAddEmployee() {
-        document.getElementById('addEmployeeModal').classList.add('hidden');
-        document.body.classList.remove('modal-active');
-    }
-
-    function openEditEmployee(id) {
-        // find employee by id from server-provided array
-        const employees = @json($employees);
-        const e = employees.find(x => x.id === id);
-        if (!e) return alert('Employee not found');
-        document.getElementById('edit_employee_id').value = e.id;
-        document.getElementById('edit_full_name').value = e.full_name;
-        document.getElementById('edit_position').value = e.position;
-        document.getElementById('edit_contact').value = e.contact;
-        document.getElementById('edit_shop').value = e.shop || '';
-        document.getElementById('edit_status').value = e.status || 'active';
-        document.getElementById('editEmployeeModal').classList.remove('hidden');
-        document.body.classList.add('modal-active');
-    }
-    function closeEditEmployee() {
-        document.getElementById('editEmployeeModal').classList.add('hidden');
-        document.body.classList.remove('modal-active');
-    }
-
-    function openDeleteEmployee(id) {
-        document.getElementById('delete_employee_id').value = id;
-        document.getElementById('deleteEmployeeModal').classList.remove('hidden');
-        document.body.classList.add('modal-active');
-    }
-    function closeDeleteEmployee() {
-        document.getElementById('deleteEmployeeModal').classList.add('hidden');
-        document.body.classList.remove('modal-active');
-    }
-
-    // -------------------- Shop modals --------------------
-    function openAddShop() {
-        document.getElementById('addShopModal').classList.remove('hidden');
-        document.body.classList.add('modal-active');
-    }
-    function closeAddShop() {
-        document.getElementById('addShopModal').classList.add('hidden');
-        document.body.classList.remove('modal-active');
-    }
-
-    function openEditShop(id) {
-        const shops = @json($shops);
-        const s = shops.find(x => x.id === id);
-        if (!s) return alert('Shop not found');
-        document.getElementById('edit_shop_id').value = s.id;
-        document.getElementById('edit_shop_name').value = s.name;
-        document.getElementById('edit_shop_address').value = s.address;
-        document.getElementById('edit_shop_phone').value = s.phone;
-        document.getElementById('edit_shop_status').value = s.status || 'active';
-        document.getElementById('editShopModal').classList.remove('hidden');
-        document.body.classList.add('modal-active');
-    }
-    function closeEditShop() {
-        document.getElementById('editShopModal').classList.add('hidden');
-        document.body.classList.remove('modal-active');
-    }
-
-    function openDeleteShop(id) {
-        document.getElementById('delete_shop_id').value = id;
-        document.getElementById('deleteShopModal').classList.remove('hidden');
-        document.body.classList.add('modal-active');
-    }
-    function closeDeleteShop() {
-        document.getElementById('deleteShopModal').classList.add('hidden');
-        document.body.classList.remove('modal-active');
-    }
-
-    // -------------------- Search filter for employees --------------------
-    document.getElementById('employeeSearch').addEventListener('input', function() {
-        const q = this.value.toLowerCase();
+    // Simple Client-side Search
+    document.getElementById('employeeSearch').addEventListener('keyup', function() {
+        const value = this.value.toLowerCase();
         document.querySelectorAll('.employee-row').forEach(row => {
-            const text = row.getAttribute('data-search') || '';
-            row.style.display = text.includes(q) ? '' : 'none';
+            const text = row.getAttribute('data-search');
+            row.style.display = text.includes(value) ? '' : 'none';
         });
     });
-
-    // close modals when pressing Escape
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-            closeAddEmployee(); closeEditEmployee(); closeDeleteEmployee();
-            closeAddShop(); closeEditShop(); closeDeleteShop();
-        }
-    });
-
-    // render lucide icons inside dynamically opened modals
-    document.addEventListener('click', () => {
-        if (window.lucide && typeof lucide.createIcons === 'function') lucide.createIcons();
-    });
 </script>
-
 @endsection
